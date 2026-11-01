@@ -32,6 +32,7 @@ public class PlayerScreen {
     private final ImageLoader.RoundedImageView cover;
     private final TextView title;
     private final TextView artist;
+    private final TextView album;
     private final TextView source;
     private final TextView elapsed;
     private final TextView total;
@@ -52,36 +53,52 @@ public class PlayerScreen {
         root.setPadding(Ui.dp(a, 18), 0, Ui.dp(a, 18), Ui.dp(a, 10));
 
         LinearLayout header = Ui.row(a);
-        header.setPadding(0, Ui.dp(a, 6), 0, Ui.dp(a, 4));
-        header.addView(Ui.iconButton(a, R.drawable.ic_arrow_down, 40, 24, Theme.text(), v -> hide()));
+        header.setPadding(0, Ui.dp(a, 8), 0, Ui.dp(a, 6));
+        header.addView(Ui.iconButton(a, R.drawable.ic_arrow_down, 42, 24, Theme.text(), v -> hide()));
         LinearLayout hcopy = Ui.column(a);
         hcopy.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         hcopy.setGravity(Gravity.CENTER);
         TextView label = Ui.text(a, "СЕЙЧАС ИГРАЕТ", 9.5f, Theme.dim(), true);
-        label.setLetterSpacing(0.16f);
+        label.setLetterSpacing(0.18f);
         hcopy.addView(label);
         source = Ui.text(a, "Mashiro", 10, Theme.faint(), false);
         source.setGravity(Gravity.CENTER);
         hcopy.addView(source);
         header.addView(hcopy);
-        header.addView(Ui.iconButton(a, R.drawable.ic_queue, 40, 21, Theme.text(), v -> a.openQueue()));
+        header.addView(Ui.iconButton(a, R.drawable.ic_queue, 42, 21, Theme.text(), v -> a.openQueue()));
         root.addView(header);
 
         coverBox = new FrameLayout(a);
         root.addView(coverBox, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-        int size = Math.min(Ui.screenWidth(a) - Ui.dp(a, 58), Ui.dp(a, 360));
+
+        // soft accent halo behind the artwork
+        View halo = new View(a) {
+            @Override
+            protected void onDraw(android.graphics.Canvas canvas) {
+                android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+                paint.setShader(new android.graphics.RadialGradient(getWidth() / 2f, getHeight() / 2f,
+                        Math.max(getWidth(), getHeight()) * 0.54f,
+                        new int[]{Theme.accentSoft(56), Theme.accentSoft(0)},
+                        new float[]{0.42f, 1f}, android.graphics.Shader.TileMode.CLAMP));
+                canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+            }
+        };
+        coverBox.addView(halo, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        int size = Math.min(Ui.screenWidth(a) - Ui.dp(a, 54), Ui.dp(a, 380));
         cover = new ImageLoader.RoundedImageView(a);
-        cover.setRadiusDp(18);
-        cover.setBackground(Ui.bg(a, Theme.surface2(), 18));
-        cover.setElevation(Ui.dp(a, 10));
+        cover.setRadiusDp(22);
+        cover.setBackground(Ui.bg(a, Theme.surface2(), 22));
+        cover.setElevation(Ui.dp(a, 16));
         FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(size, size);
         clp.gravity = Gravity.CENTER;
         coverBox.addView(cover, clp);
         cover.setOnClickListener(v -> a.openQueue());
         coverBox.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-            int available = Math.min(v.getWidth(), v.getHeight()) - Ui.dp(a, 22);
-            int target = Math.max(Ui.dp(a, 150), Math.min(available, Ui.dp(a, 360)));
+            int available = Math.min(v.getWidth(), v.getHeight()) - Ui.dp(a, 26);
+            int target = Math.max(Ui.dp(a, 150), Math.min(available, Ui.dp(a, 380)));
             FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) cover.getLayoutParams();
             if (lp.width != target || lp.height != target) {
                 lp.width = target;
@@ -91,16 +108,16 @@ public class PlayerScreen {
         });
 
         LinearLayout info = Ui.column(a);
-        info.setPadding(0, Ui.dp(a, 18), 0, 0);
-        title = Ui.text(a, "", 22, Theme.text(), true);
+        info.setPadding(0, Ui.dp(a, 22), 0, 0);
+        title = Ui.text(a, "", 24, Theme.text(), true);
         title.setSingleLine(true);
         title.setEllipsize(android.text.TextUtils.TruncateAt.MARQUEE);
         title.setSelected(true);
         info.addView(title);
-        artist = Ui.text(a, "", 13, Theme.dim(), false);
+        artist = Ui.text(a, "", 13.5f, Theme.dim(), false);
         artist.setSingleLine(true);
         artist.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        artist.setPadding(0, Ui.dp(a, 4), 0, 0);
+        artist.setPadding(0, Ui.dp(a, 5), 0, 0);
         artist.setOnClickListener(v -> {
             Models.Track t = Playback.get().current();
             if (t != null && !t.artists.isEmpty() && !t.artists.get(0).id.isEmpty()) {
@@ -108,6 +125,11 @@ public class PlayerScreen {
             }
         });
         info.addView(artist);
+        album = Ui.text(a, "", 11.5f, Theme.faint(), false);
+        album.setSingleLine(true);
+        album.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        album.setPadding(0, Ui.dp(a, 3), 0, 0);
+        info.addView(album);
         error = Ui.text(a, "", 11.5f, Theme.danger(), false);
         error.setVisibility(View.GONE);
         error.setPadding(0, Ui.dp(a, 4), 0, 0);
@@ -116,7 +138,7 @@ public class PlayerScreen {
 
         seek = new SeekBar(a);
         seek.setMax(1000);
-        seek.setPadding(0, Ui.dp(a, 6), 0, 0);
+        seek.setPadding(0, Ui.dp(a, 14), 0, 0);
         if (android.os.Build.VERSION.SDK_INT >= 21) {
             seek.setProgressTintList(android.content.res.ColorStateList.valueOf(Theme.accent()));
             seek.setThumbTintList(android.content.res.ColorStateList.valueOf(Theme.accent()));
@@ -142,58 +164,58 @@ public class PlayerScreen {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         LinearLayout times = Ui.row(a);
-        elapsed = Ui.text(a, "0:00", 10.5f, Theme.faint(), false);
-        total = Ui.text(a, "0:00", 10.5f, Theme.faint(), false);
+        elapsed = Ui.text(a, "0:00", 11, Theme.faint(), false);
+        total = Ui.text(a, "0:00", 11, Theme.faint(), false);
         total.setGravity(Gravity.END);
         times.addView(elapsed, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         times.addView(total);
         root.addView(times);
 
         LinearLayout controls = Ui.row(a);
-        controls.setPadding(0, Ui.dp(a, 10), 0, Ui.dp(a, 4));
+        controls.setPadding(0, Ui.dp(a, 14), 0, Ui.dp(a, 6));
         controls.setGravity(Gravity.CENTER);
-        shuffle = Ui.icon(a, R.drawable.ic_shuffle, 20, Theme.faint());
+        shuffle = Ui.icon(a, R.drawable.ic_shuffle, 21, Theme.faint());
         shuffle.setOnClickListener(v -> {
             Playback.get().toggleShuffle();
             update();
         });
-        repeat = Ui.icon(a, R.drawable.ic_repeat, 20, Theme.faint());
+        repeat = Ui.icon(a, R.drawable.ic_repeat, 21, Theme.faint());
         repeat.setOnClickListener(v -> {
             Playback.get().repeat = (Playback.get().repeat + 1) % 3;
             Playback.get().setRepeat(Playback.get().repeat);
             update();
         });
-        ImageView prev = Ui.icon(a, R.drawable.ic_prev, 30, Theme.text());
+        ImageView prev = Ui.icon(a, R.drawable.ic_prev, 32, Theme.text());
         prev.setOnClickListener(v -> Playback.get().prev());
         FrameLayout playBox = new FrameLayout(a);
-        playBox.setBackground(Ui.bg(a, Theme.accent(), 34));
-        playBox.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 68), Ui.dp(a, 68)));
+        playBox.setBackground(Ui.bg(a, Theme.accent(), 36));
+        playBox.setElevation(Ui.dp(a, 8));
         play = new ImageView(a);
         play.setImageResource(R.drawable.ic_play);
         play.setColorFilter(Theme.accentText());
-        FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(Ui.dp(a, 30), Ui.dp(a, 30));
+        FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(Ui.dp(a, 32), Ui.dp(a, 32));
         plp.gravity = Gravity.CENTER;
         playBox.addView(play, plp);
         playBox.setOnClickListener(v -> {
             Playback.get().toggle();
             play.postDelayed(this::update, 120);
         });
-        ImageView next = Ui.icon(a, R.drawable.ic_next, 30, Theme.text());
+        ImageView next = Ui.icon(a, R.drawable.ic_next, 32, Theme.text());
         next.setOnClickListener(v -> Playback.get().next(true));
 
-        controls.addView(wrap(shuffle, 44));
-        controls.addView(wrap(prev, 54));
+        controls.addView(wrap(shuffle, 48));
+        controls.addView(wrap(prev, 56));
         controls.addView(playBox);
-        LinearLayout.LayoutParams pb = new LinearLayout.LayoutParams(Ui.dp(a, 68), Ui.dp(a, 68));
-        pb.leftMargin = Ui.dp(a, 16);
-        pb.rightMargin = Ui.dp(a, 16);
+        LinearLayout.LayoutParams pb = new LinearLayout.LayoutParams(Ui.dp(a, 72), Ui.dp(a, 72));
+        pb.leftMargin = Ui.dp(a, 18);
+        pb.rightMargin = Ui.dp(a, 18);
         playBox.setLayoutParams(pb);
-        controls.addView(wrap(next, 54));
-        controls.addView(wrap(repeat, 44));
+        controls.addView(wrap(next, 56));
+        controls.addView(wrap(repeat, 48));
         root.addView(controls);
 
         LinearLayout actions = Ui.row(a);
-        actions.setPadding(0, Ui.dp(a, 6), 0, 0);
+        actions.setPadding(0, Ui.dp(a, 10), 0, 0);
         like = buildAction(actions, R.drawable.ic_heart, "Нравится", v -> toggleLike());
         buildAction(actions, R.drawable.ic_lyrics, "Текст", v -> openLyrics());
         download = buildAction(actions, R.drawable.ic_download, "Скачать", v -> download());
@@ -232,6 +254,14 @@ public class PlayerScreen {
     private void toggleLike() {
         Models.Track track = Playback.get().current();
         if (track == null) return;
+        if (Store.guestMode()) {
+            Ui.toast(a, "Войдите в аккаунт, чтобы ставить лайки");
+            return;
+        }
+        if (Store.isImported(track.id)) {
+            Ui.toast(a, "Локальные файлы не добавляются в избранное");
+            return;
+        }
         boolean liked = Store.isLiked(track.id);
         a.bg(() -> {
             App.api.setLike(track.id, false, liked);
@@ -262,7 +292,11 @@ public class PlayerScreen {
         if (track == null) return;
         String existing = Store.downloadPath(track.id);
         if (!existing.isEmpty() && new java.io.File(existing).exists()) {
-            Ui.toast(a, "Уже скачано");
+            Ui.toast(a, Store.isImported(track.id) ? "Этот файл уже на устройстве" : "Уже скачано");
+            return;
+        }
+        if (Store.isImported(track.id)) {
+            Ui.toast(a, "Файл недоступен — импортируйте его заново");
             return;
         }
         Ui.toast(a, "Скачиваем…");
@@ -322,6 +356,8 @@ public class PlayerScreen {
         }
         title.setText(track.title);
         artist.setText(track.artistLine());
+        album.setText(track.albumTitle == null ? "" : track.albumTitle);
+        album.setVisibility(track.albumTitle == null || track.albumTitle.isEmpty() ? View.GONE : View.VISIBLE);
         ImageLoader.load(track.coverLarge.isEmpty() ? track.coverUrl : track.coverLarge, cover,
                 Ui.dp(a, 380));
         play.setImageResource(p.playing ? R.drawable.ic_pause : R.drawable.ic_play);
@@ -330,7 +366,9 @@ public class PlayerScreen {
         shuffle.setColorFilter(p.shuffle ? Theme.accent() : Theme.faint());
         repeat.setImageResource(p.repeat == 2 ? R.drawable.ic_repeat_one : R.drawable.ic_repeat);
         repeat.setColorFilter(p.repeat == 0 ? Theme.faint() : Theme.accent());
-        download.setColorFilter(!Store.downloadPath(track.id).isEmpty() ? Theme.accent() : Theme.dim());
+        String localPath = Store.downloadPath(track.id);
+        download.setColorFilter(!localPath.isEmpty() && new java.io.File(localPath).exists()
+                ? Theme.accent() : Theme.dim());
         source.setText(p.wave ? "Моя волна" : p.queue.size() + " " + Ui.plural(p.queue.size(),
                 "трек", "трека", "треков") + " в очереди");
         if (p.error != null && !p.error.isEmpty()) {

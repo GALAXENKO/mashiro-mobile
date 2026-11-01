@@ -8,6 +8,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.mashiro.mobile.App;
+import com.mashiro.mobile.AudioImporter;
+import com.mashiro.mobile.Downloader;
 import com.mashiro.mobile.ImageLoader;
 import com.mashiro.mobile.MainActivity;
 import com.mashiro.mobile.R;
@@ -278,17 +280,28 @@ public class LibraryScreen extends Screen {
     // -------------------------------------------------------------- downloads
 
     private void renderDownloads() {
+        LinearLayout importRow = Ui.row(a);
+        importRow.setPadding(0, Ui.dp(a, 2), 0, Ui.dp(a, 10));
+        importRow.addView(Widgets.actionChip(a, R.drawable.ic_note, "Импортировать файлы",
+                () -> AudioImporter.pick(a, () -> render())), chipLp());
+        importRow.addView(Widgets.actionChip(a, R.drawable.ic_music, "Найти в памяти",
+                () -> AudioImporter.scanDevice(a, () -> render())), chipLp());
+        content.addView(importRow);
+
         List<Models.Track> tracks = Store.downloadedTracks();
         if (tracks.isEmpty()) {
             content.addView(Widgets.empty(a, "Нет скачанных треков",
-                    "Скачайте трек из меню или из плеера — он будет доступен без сети"));
+                    "Скачайте трек из меню или из плеера, либо импортируйте свои файлы — "
+                            + "они будут доступны без сети"));
             return;
         }
 
         long bytes = 0;
+        int imported = 0;
         for (Models.Track t : tracks) {
             String path = Store.downloadPath(t.id);
             if (!path.isEmpty()) bytes += new java.io.File(path).length();
+            if (Store.isImported(t.id)) imported++;
         }
         LinearLayout summary = Ui.row(a);
         summary.setBackground(Ui.strokeBg(a, Theme.surface(), 16, Theme.border(), 1));
@@ -302,7 +315,9 @@ public class LibraryScreen extends Screen {
         copy.setLayoutParams(clp);
         copy.addView(Ui.text(a, tracks.size() + " " + Ui.plural(tracks.size(),
                 "трек", "трека", "треков"), 14, Theme.text(), true));
-        copy.addView(Ui.text(a, size(bytes) + " · доступно без сети", 11.5f, Theme.dim(), false));
+        String subtitle = size(bytes) + " · доступно без сети";
+        if (imported > 0) subtitle += " · своих файлов: " + imported;
+        copy.addView(Ui.text(a, subtitle, 11.5f, Theme.dim(), false));
         summary.addView(copy);
         TextView play = Ui.primaryButton(a, "Слушать", v -> a.playList(tracks, 0));
         summary.addView(play);
@@ -324,7 +339,9 @@ public class LibraryScreen extends Screen {
             title.setSingleLine(true);
             title.setEllipsize(android.text.TextUtils.TruncateAt.END);
             copyRow.addView(title);
-            copyRow.addView(Ui.text(a, track.artistLine(), 11.5f, Theme.dim(), false));
+            String line = track.artistLine();
+            if (Store.isImported(track.id)) line = "Свой файл · " + line;
+            copyRow.addView(Ui.text(a, line, 11.5f, Theme.dim(), false));
             row.addView(copyRow);
             row.addView(Ui.iconButton(a, R.drawable.ic_trash, 36, 18, Theme.faint(),
                     v -> removeDownload(track)));
@@ -335,12 +352,22 @@ public class LibraryScreen extends Screen {
         }
     }
 
+    private LinearLayout.LayoutParams chipLp() {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.rightMargin = Ui.dp(a, 8);
+        return lp;
+    }
+
     private void removeDownload(Models.Track track) {
-        Ui.confirm(a, "Удалить файл?", track.title + " — " + track.artistLine(),
-                "Удалить", () -> {
+        boolean importedFile = Store.isImported(track.id);
+        Ui.confirm(a, importedFile ? "Убрать из библиотеки?" : "Удалить файл?",
+                track.title + " — " + track.artistLine(), importedFile ? "Убрать" : "Удалить", () -> {
+                    String path = Store.downloadPath(track.id);
+                    if (!importedFile) Downloader.deleteFile(a, path);
                     Store.removeDownloadedTrack(track.id);
                     render();
-                    Ui.toast(a, "Файл удалён");
+                    Ui.toast(a, importedFile ? "Файл убран из библиотеки" : "Файл удалён");
                 }).show();
     }
 

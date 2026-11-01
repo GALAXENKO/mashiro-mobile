@@ -47,6 +47,24 @@ public final class Store {
         return session().optString("token", "");
     }
 
+    /** Guest mode = no token stored: the app works without an account. */
+    public static boolean guestMode() {
+        return token().isEmpty();
+    }
+
+    /** True when the user explicitly chose "continue without an account". */
+    public static boolean guestChosen() {
+        return p().getBoolean("guest", false);
+    }
+
+    public static void setGuestChosen(boolean value) {
+        p().edit().putBoolean("guest", value).apply();
+    }
+
+    public static boolean loggedIn() {
+        return !guestMode();
+    }
+
     public static long uid() {
         return session().optLong("uid", 0);
     }
@@ -127,6 +145,26 @@ public final class Store {
 
     public static void setReduceMotion(boolean value) {
         p().edit().putBoolean("reduceMotion", value).apply();
+    }
+
+    /** Preferred download folder name inside the public Music collection. */
+    public static String downloadFolder() {
+        return p().getString("downloadFolder", "Mashiro");
+    }
+
+    public static void setDownloadFolder(String name) {
+        String clean = name == null ? "" : name.trim();
+        if (clean.isEmpty()) clean = "Mashiro";
+        p().edit().putString("downloadFolder", clean).apply();
+    }
+
+    /** "original" keeps the stream as is, "high" asks the API for 320 kbps. */
+    public static String downloadFormat() {
+        return p().getString("downloadFormat", "high");
+    }
+
+    public static void setDownloadFormat(String format) {
+        p().edit().putString("downloadFormat", "original".equals(format) ? "original" : "high").apply();
     }
 
     // -------------------------------------------------------------- likes
@@ -418,6 +456,36 @@ public final class Store {
                 if (!t.id.isEmpty()) out.add(t);
             }
         } catch (Exception ignored) {}
+        return out;
+    }
+
+    // ------------------------------------------------------ imported tracks
+
+    public static final String LOCAL_PREFIX = "local:";
+
+    public static boolean isImported(String trackId) {
+        return trackId != null && trackId.startsWith(LOCAL_PREFIX);
+    }
+
+    /** Stable id for a file on the device, so imports survive restarts. */
+    public static String localId(String path) {
+        String clean = path == null ? "" : path;
+        try {
+            clean = new java.io.File(clean).getAbsolutePath();
+        } catch (Exception ignored) {}
+        return LOCAL_PREFIX + Integer.toHexString(clean.hashCode()) + ":"
+                + Integer.toHexString(clean.toLowerCase().hashCode());
+    }
+
+    public static void saveImportedTrack(Models.Track track, String path) {
+        saveDownloadedTrack(track, path);
+    }
+
+    public static List<Models.Track> importedTracks() {
+        List<Models.Track> out = new ArrayList<>();
+        for (Models.Track track : downloadedTracks()) {
+            if (isImported(track.id)) out.add(track);
+        }
         return out;
     }
 

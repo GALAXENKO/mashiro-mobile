@@ -27,6 +27,8 @@ import org.json.JSONObject;
 public class LoginScreen extends Screen {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean polling = false;
+    private TextView waitLabel;
+    private long pollStartedAt = 0;
 
     public LoginScreen(MainActivity a) {
         super(a);
@@ -102,6 +104,23 @@ public class LoginScreen extends Screen {
         token.setPadding(0, Ui.dp(a, 14), 0, Ui.dp(a, 14));
         body.addView(token);
 
+        body.addView(Ui.space(a, 10));
+
+        TextView guest = Ui.secondaryButton(a, "Войти без аккаунта", v -> {
+            Store.setGuestChosen(true);
+            a.startApp();
+        });
+        guest.setPadding(0, Ui.dp(a, 14), 0, Ui.dp(a, 14));
+        body.addView(guest);
+
+        TextView guestHint = Ui.text(a,
+                "Гостевой режим: поиск, каталог и свои файлы. Лайки и плейлисты требуют аккаунта.",
+                11, Theme.faint(), false);
+        guestHint.setGravity(Gravity.CENTER);
+        guestHint.setLineSpacing(0, 1.2f);
+        guestHint.setPadding(Ui.dp(a, 12), Ui.dp(a, 8), Ui.dp(a, 12), 0);
+        body.addView(guestHint);
+
         TextView how = Ui.text(a, "Как получить токен?", 12, Theme.accent(), true);
         how.setGravity(Gravity.CENTER);
         how.setPadding(0, Ui.dp(a, 18), 0, 0);
@@ -116,7 +135,7 @@ public class LoginScreen extends Screen {
         note.setPadding(Ui.dp(a, 10), Ui.dp(a, 26), Ui.dp(a, 10), 0);
         body.addView(note);
 
-        TextView version = Ui.text(a, "Mashiro Mobile 1.0.0", 10, Theme.faint(), false);
+        TextView version = Ui.text(a, "Mashiro Mobile 1.1.0", 10, Theme.faint(), false);
         version.setGravity(Gravity.CENTER);
         version.setPadding(0, Ui.dp(a, 20), 0, 0);
         body.addView(version);
@@ -159,6 +178,7 @@ public class LoginScreen extends Screen {
 
     private void poll(String deviceCode, int seconds) {
         if (!polling) return;
+        updateWaitLabel();
         handler.postDelayed(() -> {
             if (!polling) return;
             a.bg(() -> App.api.pollDeviceToken(deviceCode), token -> {
@@ -171,6 +191,12 @@ public class LoginScreen extends Screen {
                 }
             }, true);
         }, seconds * 1000L);
+    }
+
+    private void updateWaitLabel() {
+        if (waitLabel == null) return;
+        long elapsed = Math.max(0, (System.currentTimeMillis() - pollStartedAt) / 1000L);
+        waitLabel.setText("Код ещё не подтверждён, проверяем… " + elapsed + " с");
     }
 
     private void showCodeDialog(String code, String url) {
@@ -206,6 +232,8 @@ public class LoginScreen extends Screen {
         TextView wait = Ui.text(a, "Ожидаем подтверждения…", 11, Theme.faint(), false);
         wait.setGravity(Gravity.CENTER);
         wait.setPadding(0, Ui.dp(a, 12), 0, 0);
+        waitLabel = wait;
+        pollStartedAt = System.currentTimeMillis();
         root.addView(wait);
         dialog.setContentView(root);
         dialog.setOnDismissListener(d -> polling = false);
@@ -236,6 +264,7 @@ public class LoginScreen extends Screen {
                 return profile;
             }, profile -> {
                 Store.saveSession(value, profile);
+                Store.setGuestChosen(false);
                 App.applySession();
                 Ui.toast(a, "Добро пожаловать, " + (profile.name.isEmpty() ? profile.login : profile.name));
                 a.startApp();
@@ -249,6 +278,7 @@ public class LoginScreen extends Screen {
             return App.api.profile();
         }, profile -> {
             Store.saveSession(token, profile);
+            Store.setGuestChosen(false);
             App.applySession();
             Ui.toast(a, "Добро пожаловать, " + (profile.name.isEmpty() ? profile.login : profile.name));
             a.startApp();

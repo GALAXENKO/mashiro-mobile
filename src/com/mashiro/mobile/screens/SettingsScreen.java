@@ -30,7 +30,7 @@ public class SettingsScreen extends Screen {
     protected View build() {
         Widgets.Page page = Widgets.page(a);
         ScrollView scroll = page.scroll;
-        page.body.addView(Widgets.header(a, "Настройки", "Mashiro Mobile 1.0", true, 0, null));
+        page.body.addView(Widgets.header(a, "Настройки", "Mashiro Mobile 1.1", true, 0, null));
         content = Ui.column(a);
         page.body.addView(content);
         render();
@@ -45,18 +45,21 @@ public class SettingsScreen extends Screen {
         LinearLayout profile = Ui.row(a);
         profile.setBackground(Ui.strokeBg(a, Theme.surface(), 18, Theme.border(), 1));
         profile.setPadding(Ui.dp(a, 16), Ui.dp(a, 16), Ui.dp(a, 16), Ui.dp(a, 16));
-        profile.addView(Widgets.avatar(a, Store.avatar(), 54));
+        boolean guest = Store.guestMode();
+        profile.addView(Widgets.avatar(a, guest ? "" : Store.avatar(), 54));
         LinearLayout copy = Ui.column(a);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         clp.leftMargin = Ui.dp(a, 14);
         copy.setLayoutParams(clp);
-        copy.addView(Ui.title(a, Store.name(), 19));
-        TextView login = Ui.text(a, Store.login().isEmpty() ? "Яндекс ID" : "@" + Store.login(),
+        copy.addView(Ui.title(a, guest ? "Гостевой режим" : Store.name(), 19));
+        TextView login = Ui.text(a,
+                guest ? "Аккаунт не подключён"
+                        : (Store.login().isEmpty() ? "Яндекс ID" : "@" + Store.login()),
                 11.5f, Theme.dim(), false);
         login.setPadding(0, Ui.dp(a, 3), 0, 0);
         copy.addView(login);
-        if (Store.hasPlus()) {
+        if (!guest && Store.hasPlus()) {
             TextView plus = Ui.pill(a, "Плюс активен", Theme.accent());
             LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -68,12 +71,22 @@ public class SettingsScreen extends Screen {
 
         LinearLayout accountActions = Ui.row(a);
         accountActions.setPadding(0, Ui.dp(a, 8), 0, 0);
-        accountActions.addView(Widgets.actionChip(a, R.drawable.ic_person, "Профиль Яндекс",
-                () -> a.openUrl("https://passport.yandex.ru/profile")),
-                chipLp(0));
-        accountActions.addView(Widgets.actionChip(a, R.drawable.ic_trash, "Выйти",
-                () -> Ui.confirm(a, "Выйти из аккаунта?", "Очередь и кэш обложек будут очищены",
-                        "Выйти", () -> a.logout()).show()), chipLp(8));
+        if (guest) {
+            accountActions.addView(Widgets.actionChip(a, R.drawable.ic_person, "Войти в аккаунт",
+                    () -> a.showLogin()), chipLp(0));
+            accountActions.addView(Widgets.actionChip(a, R.drawable.ic_note, "Что доступно",
+                    () -> Ui.confirm(a, "Гостевой режим",
+                            "Доступны каталог, поиск, волна и свои файлы. "
+                                    + "Лайки, плейлисты и профиль требуют аккаунта Яндекса.",
+                            "Понятно", () -> {}).show()), chipLp(8));
+        } else {
+            accountActions.addView(Widgets.actionChip(a, R.drawable.ic_person, "Профиль Яндекс",
+                    () -> a.openUrl("https://passport.yandex.ru/profile")),
+                    chipLp(0));
+            accountActions.addView(Widgets.actionChip(a, R.drawable.ic_trash, "Выйти",
+                    () -> Ui.confirm(a, "Выйти из аккаунта?", "Очередь и кэш обложек будут очищены",
+                            "Выйти", () -> a.logout()).show()), chipLp(8));
+        }
         content.addView(accountActions);
 
         // ----------------------------------------------------------- theme
@@ -89,8 +102,8 @@ public class SettingsScreen extends Screen {
         accentLabel.setPadding(0, Ui.dp(a, 14), 0, Ui.dp(a, 8));
         content.addView(accentLabel);
 
-        String[] colors = {"#FFFFFF", "#FF6B6B", "#FFB86B", "#7BE495", "#6BB8FF",
-                "#B79CFF", "#FF9CD0"};
+        String[] colors = {"#FFFFFF", "#FF6B6B", "#FFB86B", "#FFC24B", "#7BE495",
+                "#3ED6A6", "#57D9D9", "#6BB8FF", "#B79CFF", "#FF7A9C", "#FF9CD0"};
         LinearLayout swatches = Ui.row(a);
         for (String hex : colors) {
             swatches.addView(swatch(hex), swatchLp());
@@ -130,6 +143,40 @@ public class SettingsScreen extends Screen {
                         "файл", "файла", "файлов") + " без сети", "Открыть",
                 () -> a.open(new LibraryScreen(a, 2))));
 
+        // --------------------------------------------------------- downloads
+        content.addView(Widgets.sectionHeader(a, "Загрузки", null, null));
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            content.addView(settingRow(R.drawable.ic_download, "Папка на телефоне",
+                    "Music/" + Store.downloadFolder(), "Изменить", () ->
+                            Ui.input(a, "Папка загрузок", Store.downloadFolder(),
+                                    "Mashiro", "Сохранить", false, value -> {
+                                        Store.setDownloadFolder(value);
+                                        render();
+                                        Ui.toast(a, "Папка: Music/" + Store.downloadFolder());
+                                    }).show()));
+        } else {
+            content.addView(settingRow(R.drawable.ic_download, "Папка на телефоне",
+                    "Android/data/com.mashiro.mobile/files/Music", "", () -> {}));
+        }
+
+        TextView formatLabel = Ui.text(a, "Качество загрузки", 12, Theme.dim(), true);
+        formatLabel.setPadding(0, Ui.dp(a, 6), 0, Ui.dp(a, 8));
+        content.addView(formatLabel);
+        LinearLayout formatRow = Ui.row(a);
+        TextView highFormat = Ui.chip(a, "Высокое 320", "high".equals(Store.downloadFormat()),
+                v -> {
+                    Store.setDownloadFormat("high");
+                    render();
+                });
+        TextView originalFormat = Ui.chip(a, "Как в потоке",
+                "original".equals(Store.downloadFormat()), v -> {
+                    Store.setDownloadFormat("original");
+                    render();
+                });
+        formatRow.addView(highFormat, chipLp(0));
+        formatRow.addView(originalFormat, chipLp(8));
+        content.addView(formatRow);
+
         // -------------------------------------------------------- maintenance
         content.addView(Widgets.sectionHeader(a, "Обслуживание", null, null));
         content.addView(settingRow(R.drawable.ic_trash, "Очистить кэш обложек",
@@ -154,7 +201,7 @@ public class SettingsScreen extends Screen {
         // -------------------------------------------------------------- about
         content.addView(Widgets.sectionHeader(a, "О приложении", null, null));
         content.addView(Widgets.actionCard(a, R.drawable.ic_music, "Mashiro Mobile",
-                "Неофициальный клиент Яндекс Музыки · 1.0.0",
+                "Неофициальный клиент Яндекс Музыки · 1.1.0",
                 () -> a.openUrl("https://github.com/aeviww/yandex-music-client")));
         content.addView(Widgets.actionCard(a, R.drawable.ic_person, "Исходный проект",
                 "aeviww/yandex-music-client на GitHub",
@@ -169,7 +216,7 @@ public class SettingsScreen extends Screen {
         disclaimer.setPadding(0, Ui.dp(a, 10), 0, Ui.dp(a, 4));
         content.addView(disclaimer);
 
-        TextView version = Ui.text(a, "Mashiro Mobile 1.0.0 · Android", 10, Theme.faint(), false);
+        TextView version = Ui.text(a, "Mashiro Mobile 1.1.0 · Android", 10, Theme.faint(), false);
         version.setGravity(Gravity.CENTER);
         version.setPadding(0, Ui.dp(a, 18), 0, 0);
         content.addView(version);

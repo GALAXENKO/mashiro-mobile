@@ -114,7 +114,7 @@ public class MainActivity extends Activity {
         setContentView(buildShell());
         Playback.get().addListener(listener);
         askNotifications();
-        if (Store.token().isEmpty()) {
+        if (Store.token().isEmpty() && !Store.guestChosen()) {
             showLogin();
         } else {
             startApp();
@@ -392,14 +392,16 @@ public class MainActivity extends Activity {
         updateNav();
         showRoot(new HomeScreen(this));
         updateMini();
-        bg(() -> {
-            Models.Profile profile = App.api.profile();
-            Store.setPlus(profile.hasPlus);
-            if (!profile.name.isEmpty()) {
-                Store.saveSession(Store.token(), profile);
-            }
-            return profile;
-        }, profile -> { if (current instanceof HomeScreen) current.refresh(); });
+        if (Store.loggedIn()) {
+            bg(() -> {
+                Models.Profile profile = App.api.profile();
+                Store.setPlus(profile.hasPlus);
+                if (!profile.name.isEmpty()) {
+                    Store.saveSession(Store.token(), profile);
+                }
+                return profile;
+            }, profile -> { if (current instanceof HomeScreen) current.refresh(); });
+        }
         refreshLikes();
     }
 
@@ -566,6 +568,7 @@ public class MainActivity extends Activity {
     }
 
     public void handleAuthError() {
+        if (Store.guestMode()) return;
         Store.logout();
         App.applySession();
         showLogin();
@@ -574,6 +577,7 @@ public class MainActivity extends Activity {
     public void logout() {
         Playback.get().stop();
         Store.logout();
+        Store.setGuestChosen(false);
         App.applySession();
         if (player != null) {
             player.hide();
@@ -617,6 +621,20 @@ public class MainActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        AudioImporter.handleResult(this, requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == AudioImporter.REQ_PERM) {
+            AudioImporter.handlePermissions(this, grantResults);
+        }
     }
 
     @Override
