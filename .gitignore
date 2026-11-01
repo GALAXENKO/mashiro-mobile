@@ -1,0 +1,12 @@
+# Build output (APK, dex, classes, resources) and signing key
+build/
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local settings
+local.properties

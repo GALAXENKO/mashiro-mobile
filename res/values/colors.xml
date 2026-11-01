@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="mashiro_bg">#08080A</color>
+    <color name="mashiro_surface">#121216</color>
+    <color name="mashiro_text">#F5F5F7</color>
+    <color name="mashiro_accent">#FFFFFF</color>
+</resources>
