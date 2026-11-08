@@ -8,7 +8,7 @@ $sdk = Join-Path $env:LOCALAPPDATA "NovaBrowserBuild\android\sdk"
 $bt = Join-Path $sdk "build-tools\35.0.0"
 $androidJar = Join-Path $sdk "platforms\android-35\android.jar"
 
-$apkName = "Mashiro-1.1.0.apk"
+$apkName = "Mashiro-1.2.0.apk"
 $keystore = "build\mashiro.keystore"
 $alias = "mashiro"
 $storePass = "mashiromobile"
@@ -38,8 +38,8 @@ try {
         --java "build\gen" `
         --min-sdk-version 23 `
         --target-sdk-version 34 `
-        --version-code 2 `
-        --version-name 1.1.0 `
+        --version-code 3 `
+        --version-name 1.2.0 `
         --auto-add-overlay
     if ($LASTEXITCODE -ne 0) { throw "aapt2 link failed" }
 

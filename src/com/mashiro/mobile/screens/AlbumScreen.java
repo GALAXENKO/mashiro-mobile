@@ -73,20 +73,21 @@ public class AlbumScreen extends Screen {
         if (album == null) return;
 
         LinearLayout hero = Ui.row(a);
-        hero.setPadding(0, Ui.dp(a, 6), 0, Ui.dp(a, 4));
-        int size = Math.min(Ui.screenWidth(a) - Ui.dp(a, 150), Ui.dp(a, 156));
-        ImageLoader.RoundedImageView cover = Widgets.cover(a, album.coverUrl, 148, 14);
+        hero.setPadding(0, Ui.dp(a, 8), 0, Ui.dp(a, 4));
+        int size = Math.min(Ui.screenWidth(a) - Ui.dp(a, 148), Ui.dp(a, 164));
+        ImageLoader.RoundedImageView cover = Widgets.cover(a, album.coverUrl, 156, 20);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(size, size);
-        clp.rightMargin = Ui.dp(a, 16);
+        clp.rightMargin = Ui.dp(a, 18);
+        cover.setElevation(Ui.dp(a, 10));
         hero.addView(cover, clp);
 
         LinearLayout copy = Ui.column(a);
         copy.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        copy.addView(Ui.text(a, "АЛЬБОМ", 9.5f, Theme.faint(), true));
-        TextView title = Ui.title(a, album.title, 21);
+        copy.addView(Ui.overline(a, "Альбом"));
+        TextView title = Ui.title(a, album.title, 22);
         title.setMaxLines(3);
-        title.setPadding(0, Ui.dp(a, 6), 0, Ui.dp(a, 6));
+        title.setPadding(0, Ui.dp(a, 7), 0, Ui.dp(a, 7));
         copy.addView(title);
 
         LinearLayout artistRow = Ui.row(a);
@@ -107,19 +108,22 @@ public class AlbumScreen extends Screen {
         String meta = album.year > 0 ? String.valueOf(album.year) : "";
         if (!album.genre.isEmpty()) meta = meta.isEmpty() ? album.genre : meta + " · " + album.genre;
         if (meta.isEmpty()) meta = "Альбом";
-        copy.addView(Ui.text(a, meta, 11.5f, Theme.faint(), false));
+        TextView metaView = Ui.text(a, meta, 11, Theme.faint(), false);
+        metaView.setLetterSpacing(0.04f);
+        metaView.setPadding(0, Ui.dp(a, 7), 0, 0);
+        copy.addView(metaView);
         hero.addView(copy);
         content.addView(hero);
 
         LinearLayout actions = Ui.row(a);
-        actions.setPadding(0, Ui.dp(a, 12), 0, Ui.dp(a, 4));
+        actions.setPadding(0, Ui.dp(a, 16), 0, Ui.dp(a, 4));
         TextView play = Ui.primaryButton(a, "Слушать", v -> a.playList(album.tracks, 0));
         play.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         TextView shuffle = Ui.secondaryButton(a, "Перемешать", v -> a.playShuffled(album.tracks));
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        slp.leftMargin = Ui.dp(a, 8);
+        slp.leftMargin = Ui.dp(a, 9);
         shuffle.setLayoutParams(slp);
         actions.addView(play);
         actions.addView(shuffle);

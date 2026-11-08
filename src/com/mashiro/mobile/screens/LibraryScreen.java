@@ -51,9 +51,10 @@ public class LibraryScreen extends Screen {
         body.addView(Widgets.header(a, "Медиатека", Store.name(), false,
                 R.drawable.ic_settings, v -> a.openSettings()));
 
+        body.addView(Ui.space(a, 8));
         tabs = Ui.row(a);
-        tabs.setPadding(0, Ui.dp(a, 4), 0, Ui.dp(a, 6));
         body.addView(tabs);
+        body.addView(Ui.space(a, 16));
 
         content = Ui.column(a);
         body.addView(content);
@@ -93,13 +94,18 @@ public class LibraryScreen extends Screen {
 
     private void renderTabs() {
         tabs.removeAllViews();
+        tabs.setBackground(Ui.strokeBg(a, Theme.surface2(), 16, Theme.hairline(), 1));
+        tabs.setPadding(Ui.dp(a, 4), Ui.dp(a, 4), Ui.dp(a, 4), Ui.dp(a, 4));
         String[] labels = {"Обзор", "Плейлисты", "Скачано"};
         for (int i = 0; i < labels.length; i++) {
-            TextView chip = Ui.chip(a, labels[i], tab == i, v -> setTab(indexOf(v)));
+            boolean active = tab == i;
+            TextView chip = Ui.text(a, labels[i], 12, active ? Theme.text() : Theme.faint(), active);
+            chip.setGravity(Gravity.CENTER);
             chip.setTag(i);
+            chip.setBackground(Ui.bg(a, active ? Theme.surface3() : android.graphics.Color.TRANSPARENT, 12));
+            chip.setOnClickListener(v -> setTab(indexOf(v)));
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.rightMargin = Ui.dp(a, 8);
+                    0, Ui.dp(a, 34), 1f);
             chip.setLayoutParams(lp);
             tabs.addView(chip);
         }
@@ -122,32 +128,36 @@ public class LibraryScreen extends Screen {
 
     private void renderOverview() {
         LinearLayout profile = Ui.row(a);
-        profile.setBackground(Ui.strokeBg(a, Theme.surface(), 18, Theme.border(), 1));
-        profile.setPadding(Ui.dp(a, 16), Ui.dp(a, 16), Ui.dp(a, 16), Ui.dp(a, 16));
+        android.graphics.drawable.GradientDrawable profileBg =
+                Ui.gradient(a, Theme.surface2(), Theme.surface(), 22);
+        profileBg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
+        profile.setBackground(profileBg);
+        profile.setPadding(Ui.dp(a, 16), Ui.dp(a, 18), Ui.dp(a, 16), Ui.dp(a, 18));
         profile.addView(Widgets.avatar(a, Store.avatar(), 58));
         LinearLayout copy = Ui.column(a);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        clp.leftMargin = Ui.dp(a, 14);
+        clp.leftMargin = Ui.dp(a, 15);
         copy.setLayoutParams(clp);
-        TextView name = Ui.title(a, Store.name(), 20);
+        TextView name = Ui.title(a, Store.name(), 21);
         name.setSingleLine(true);
         copy.addView(name);
         TextView sub = Ui.text(a, Store.liked().size() + " "
                 + Ui.plural(Store.liked().size(), "любимый трек", "любимых трека", "любимых треков")
                 + " · " + playlists.size() + " " + Ui.plural(playlists.size(), "плейлист", "плейлиста", "плейлистов"),
                 11.5f, Theme.dim(), false);
-        sub.setPadding(0, Ui.dp(a, 3), 0, 0);
+        sub.setPadding(0, Ui.dp(a, 5), 0, 0);
         copy.addView(sub);
         if (Store.hasPlus()) {
-            TextView plus = Ui.pill(a, "Плюс", Theme.accent());
+            TextView plus = Ui.pill(a, "Плюс активен", Theme.accent());
             LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            plp.topMargin = Ui.dp(a, 6);
+            plp.topMargin = Ui.dp(a, 8);
             copy.addView(plus, plp);
         }
         profile.addView(copy);
         profile.setOnClickListener(v -> a.openSettings());
+        Ui.ripple(profile, 0x14FFFFFF);
         content.addView(profile);
 
         LinearLayout quick = Ui.row(a);
@@ -207,14 +217,18 @@ public class LibraryScreen extends Screen {
 
     private View quickCard(int icon, String title, int value, Runnable click) {
         LinearLayout box = Ui.column(a);
-        box.setBackground(Ui.strokeBg(a, Theme.surface(), 15, Theme.border(), 1));
-        box.setPadding(Ui.dp(a, 12), Ui.dp(a, 12), Ui.dp(a, 10), Ui.dp(a, 12));
-        box.addView(Ui.icon(a, icon, 20, Theme.text()));
-        TextView number = Ui.text(a, String.valueOf(value), 18, Theme.text(), true);
-        number.setPadding(0, Ui.dp(a, 10), 0, 0);
+        android.graphics.drawable.GradientDrawable bg =
+                Ui.gradient(a, Theme.surface2(), Theme.surface(), 16);
+        bg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
+        box.setBackground(bg);
+        box.setPadding(Ui.dp(a, 13), Ui.dp(a, 13), Ui.dp(a, 11), Ui.dp(a, 13));
+        box.addView(Widgets.circleIcon(a, icon, 32, Theme.accentSoft(24), Theme.accent()));
+        TextView number = Ui.text(a, String.valueOf(value), 19, Theme.text(), true);
+        number.setPadding(0, Ui.dp(a, 11), 0, 0);
         box.addView(number);
-        TextView label = Ui.text(a, title, 10.5f, Theme.dim(), true);
+        TextView label = Ui.overline(a, title);
         label.setSingleLine(true);
+        label.setPadding(0, Ui.dp(a, 4), 0, 0);
         box.addView(label);
         box.setOnClickListener(v -> click.run());
         Ui.ripple(box, 0x1AFFFFFF);
@@ -304,22 +318,28 @@ public class LibraryScreen extends Screen {
             if (Store.isImported(t.id)) imported++;
         }
         LinearLayout summary = Ui.row(a);
-        summary.setBackground(Ui.strokeBg(a, Theme.surface(), 16, Theme.border(), 1));
-        summary.setPadding(Ui.dp(a, 15), Ui.dp(a, 14), Ui.dp(a, 15), Ui.dp(a, 14));
-        summary.addView(Widgets.circleIcon(a, R.drawable.ic_download, 40,
-                Theme.accentSoft(20), Theme.accent()));
+        android.graphics.drawable.GradientDrawable summaryBg =
+                Ui.gradient(a, Theme.surface2(), Theme.surface(), 18);
+        summaryBg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
+        summary.setBackground(summaryBg);
+        summary.setPadding(Ui.dp(a, 16), Ui.dp(a, 16), Ui.dp(a, 16), Ui.dp(a, 16));
+        summary.addView(Widgets.circleIcon(a, R.drawable.ic_download, 42,
+                Theme.accentSoft(26), Theme.accent()));
         LinearLayout copy = Ui.column(a);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        clp.leftMargin = Ui.dp(a, 12);
+        clp.leftMargin = Ui.dp(a, 13);
         copy.setLayoutParams(clp);
         copy.addView(Ui.text(a, tracks.size() + " " + Ui.plural(tracks.size(),
-                "трек", "трека", "треков"), 14, Theme.text(), true));
+                "трек", "трека", "треков"), 15, Theme.text(), true));
         String subtitle = size(bytes) + " · доступно без сети";
         if (imported > 0) subtitle += " · своих файлов: " + imported;
-        copy.addView(Ui.text(a, subtitle, 11.5f, Theme.dim(), false));
+        TextView subView = Ui.text(a, subtitle, 11.5f, Theme.dim(), false);
+        subView.setPadding(0, Ui.dp(a, 4), 0, 0);
+        copy.addView(subView);
         summary.addView(copy);
         TextView play = Ui.primaryButton(a, "Слушать", v -> a.playList(tracks, 0));
+        play.setPadding(Ui.dp(a, 16), Ui.dp(a, 9), Ui.dp(a, 16), Ui.dp(a, 9));
         summary.addView(play);
         content.addView(summary);
 
@@ -327,13 +347,14 @@ public class LibraryScreen extends Screen {
         for (int i = 0; i < tracks.size(); i++) {
             Models.Track track = tracks.get(i);
             LinearLayout row = Ui.row(a);
-            row.setPadding(Ui.dp(a, 4), Ui.dp(a, 6), Ui.dp(a, 4), Ui.dp(a, 6));
-            row.setBackground(Ui.bg(a, android.graphics.Color.TRANSPARENT, 10));
-            row.addView(Widgets.cover(a, track.coverUrl, 44, 7));
+            row.setPadding(Ui.dp(a, 8), Ui.dp(a, 8), Ui.dp(a, 6), Ui.dp(a, 8));
+            row.setBackground(Ui.bg(a, android.graphics.Color.TRANSPARENT, 14));
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.addView(Widgets.cover(a, track.coverUrl, 46, 10));
             LinearLayout copyRow = Ui.column(a);
             LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(0,
                     ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-            rlp.leftMargin = Ui.dp(a, 11);
+            rlp.leftMargin = Ui.dp(a, 13);
             copyRow.setLayoutParams(rlp);
             TextView title = Ui.text(a, track.title, 14, Theme.text(), true);
             title.setSingleLine(true);
@@ -341,12 +362,17 @@ public class LibraryScreen extends Screen {
             copyRow.addView(title);
             String line = track.artistLine();
             if (Store.isImported(track.id)) line = "Свой файл · " + line;
-            copyRow.addView(Ui.text(a, line, 11.5f, Theme.dim(), false));
+            TextView sub = Ui.text(a, line, 11.5f, Theme.dim(), false);
+            sub.setSingleLine(true);
+            sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            sub.setPadding(0, Ui.dp(a, 3), 0, 0);
+            copyRow.addView(sub);
             row.addView(copyRow);
             row.addView(Ui.iconButton(a, R.drawable.ic_trash, 36, 18, Theme.faint(),
                     v -> removeDownload(track)));
             final int index = i;
             row.setOnClickListener(v -> a.playList(tracks, index));
+            Ui.ripple(row, 0x14FFFFFF);
             a.registerRow(track.id, row, title);
             content.addView(row);
         }

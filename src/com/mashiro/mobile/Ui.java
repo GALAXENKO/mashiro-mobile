@@ -72,12 +72,19 @@ public final class Ui {
         t.setTextColor(color);
         t.setTypeface(Typeface.create("sans-serif" + (medium ? "-medium" : ""), medium ? Typeface.BOLD : Typeface.NORMAL));
         t.setIncludeFontPadding(false);
-        t.setLineSpacing(0, 1.12f);
+        t.setLineSpacing(0, 1.14f);
         return t;
     }
 
     public static TextView title(Context c, String text, float size) {
         return text(c, text, size, Theme.text(), true);
+    }
+
+    /** Wide-tracked uppercase caption used above sections and headers. */
+    public static TextView overline(Context c, String text) {
+        TextView t = text(c, text.toUpperCase(Locale.getDefault()), 10.5f, Theme.faint(), true);
+        t.setLetterSpacing(0.16f);
+        return t;
     }
 
     public static TextView label(Context c, String text) {
@@ -87,9 +94,34 @@ public final class Ui {
     }
 
     public static TextView section(Context c, String text) {
-        TextView t = text(c, text, 19, Theme.text(), true);
-        t.setPadding(0, dp(c, 22), 0, dp(c, 12));
+        TextView t = overline(c, text);
+        t.setPadding(0, dp(c, 24), 0, dp(c, 10));
         return t;
+    }
+
+    /** Rounded surface container used for grouped content. */
+    public static LinearLayout card(Context c, float radiusDp) {
+        LinearLayout box = column(c);
+        box.setBackground(strokeBg(c, Theme.surface(), radiusDp, Theme.border(), 1));
+        return box;
+    }
+
+    public static GradientDrawable gradient(Context c, int top, int bottom, float radiusDp) {
+        GradientDrawable d = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{top, bottom});
+        d.setCornerRadius(dp(c, radiusDp));
+        return d;
+    }
+
+    public static View insetDivider(Context c, float leftDp) {
+        LinearLayout holder = new LinearLayout(c);
+        holder.setOrientation(LinearLayout.HORIZONTAL);
+        holder.setPadding(dp(c, leftDp), 0, 0, 0);
+        View v = new View(c);
+        v.setBackgroundColor(Theme.hairline());
+        holder.addView(v, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, dp(c, 0.6f))));
+        return holder;
     }
 
     public static View space(Context c, float height) {
@@ -178,8 +210,8 @@ public final class Ui {
     public static TextView primaryButton(Context c, String text, View.OnClickListener click) {
         TextView b = text(c, text, 15, Theme.accentText(), true);
         b.setGravity(Gravity.CENTER);
-        b.setPadding(dp(c, 18), dp(c, 14), dp(c, 18), dp(c, 14));
-        b.setBackground(bg(c, Theme.accent(), 14));
+        b.setPadding(dp(c, 20), dp(c, 15), dp(c, 20), dp(c, 15));
+        b.setBackground(bg(c, Theme.accent(), 16));
         b.setOnClickListener(click);
         ripple(b, Theme.accentText() == 0xFF08080A ? 0x22000000 : 0x22FFFFFF);
         return b;
@@ -188,29 +220,31 @@ public final class Ui {
     public static TextView secondaryButton(Context c, String text, View.OnClickListener click) {
         TextView b = text(c, text, 14, Theme.text(), true);
         b.setGravity(Gravity.CENTER);
-        b.setPadding(dp(c, 16), dp(c, 12), dp(c, 16), dp(c, 12));
-        b.setBackground(strokeBg(c, Theme.surface2(), 13, Theme.border(), 1));
+        b.setPadding(dp(c, 18), dp(c, 13), dp(c, 18), dp(c, 13));
+        b.setBackground(strokeBg(c, Theme.surface2(), 14, Theme.border(), 1));
         b.setOnClickListener(click);
         ripple(b, Theme.light() ? 0x14101014 : 0x1AFFFFFF);
         return b;
     }
 
     public static TextView chip(Context c, String text, boolean on, View.OnClickListener click) {
-        TextView b = Ui.text(c, text, 13, on ? Theme.accentText() : Theme.dim(), on);
+        TextView b = Ui.text(c, text, 12.5f, on ? Theme.accentText() : Theme.dim(), on);
         b.setGravity(Gravity.CENTER);
-        b.setPadding(dp(c, 14), dp(c, 8), dp(c, 14), dp(c, 8));
-        b.setBackground(bg(c, on ? Theme.accent() : Theme.surface2(), 20));
+        b.setPadding(dp(c, 15), dp(c, 9), dp(c, 15), dp(c, 9));
+        b.setBackground(on ? bg(c, Theme.accent(), 18)
+                : strokeBg(c, Theme.surface(), 18, Theme.border(), 1));
         if (click != null) {
             b.setOnClickListener(click);
-            ripple(b, on ? 0x22000000 : 0x18FFFFFF);
+            ripple(b, on ? 0x22000000 : (Theme.light() ? 0x12101014 : 0x18FFFFFF));
         }
         return b;
     }
 
     public static TextView pill(Context c, String text, int color) {
-        TextView t = text(c, text, 11, color, true);
+        TextView t = text(c, text, 10.5f, color, true);
+        t.setLetterSpacing(0.02f);
         t.setPadding(dp(c, 8), dp(c, 4), dp(c, 8), dp(c, 4));
-        t.setBackground(bg(c, withAlpha(color, 26), 8));
+        t.setBackground(bg(c, withAlpha(color, 28), 8));
         return t;
     }
 
@@ -290,8 +324,8 @@ public final class Ui {
         root.setBackgroundColor(0x88000000);
         root.setOnClickListener(v -> d.dismiss());
         LinearLayout holder = column(c);
-        holder.setBackground(bg(c, Theme.surface(), 22));
-        holder.setPadding(0, dp(c, 10), 0, dp(c, 8));
+        holder.setBackground(bg(c, Theme.surface(), 26));
+        holder.setPadding(0, dp(c, 12), 0, dp(c, 10));
         holder.setOnClickListener(v -> {});
         FrameLayout.LayoutParams hl = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -299,10 +333,10 @@ public final class Ui {
         root.addView(holder, hl);
         // grabber
         View grab = new View(c);
-        grab.setBackground(bg(c, Theme.border(), 3));
-        FrameLayout.LayoutParams gl = new FrameLayout.LayoutParams(dp(c, 38), dp(c, 4));
+        grab.setBackground(bg(c, Theme.surface3(), 3));
+        FrameLayout.LayoutParams gl = new FrameLayout.LayoutParams(dp(c, 42), dp(c, 4));
         gl.gravity = Gravity.CENTER_HORIZONTAL;
-        gl.bottomMargin = dp(c, 8);
+        gl.bottomMargin = dp(c, 10);
         holder.addView(grab, gl);
         holder.addView(content, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));

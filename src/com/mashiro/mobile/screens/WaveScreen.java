@@ -140,17 +140,20 @@ public class WaveScreen extends Screen {
             if (track != null && !p.wave) {
                 currentBox.addView(Widgets.sectionHeader(a, "Сейчас играет из очереди", null, null));
                 LinearLayout row = Ui.row(a);
-                row.setPadding(0, 0, 0, Ui.dp(a, 6));
-                row.addView(Widgets.cover(a, track.coverUrl, 52, 8));
+                row.setPadding(Ui.dp(a, 4), Ui.dp(a, 8), Ui.dp(a, 2), Ui.dp(a, 8));
+                row.setBackground(Ui.bg(a, android.graphics.Color.TRANSPARENT, 14));
+                row.addView(Widgets.cover(a, track.coverUrl, 46, 10));
                 LinearLayout copy = Ui.column(a);
                 LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                         ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-                clp.leftMargin = Ui.dp(a, 12);
+                clp.leftMargin = Ui.dp(a, 13);
                 copy.setLayoutParams(clp);
                 copy.addView(Ui.text(a, track.title, 14, Theme.text(), true));
-                copy.addView(Ui.text(a, track.artistLine(), 11.5f, Theme.dim(), false));
+                TextView sub = Ui.text(a, track.artistLine(), 11.5f, Theme.dim(), false);
+                sub.setPadding(0, Ui.dp(a, 2), 0, 0);
+                copy.addView(sub);
                 row.addView(copy);
-                row.addView(Ui.iconButton(a, R.drawable.ic_play, 40, 22, Theme.accent(),
+                row.addView(Ui.iconButton(a, R.drawable.ic_play, 38, 21, Theme.accent(),
                         v -> a.openPlayer()));
                 currentBox.addView(row);
             }
@@ -158,46 +161,43 @@ public class WaveScreen extends Screen {
         }
 
         LinearLayout card = Ui.column(a);
-        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{Theme.accentSoft(24), Theme.surface()});
-        bg.setCornerRadius(Ui.dp(a, 22));
+        GradientDrawable bg = Ui.gradient(a, Theme.accentSoft(26), Theme.surface(), 26);
+        bg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
         card.setBackground(bg);
-        card.setPadding(Ui.dp(a, 18), Ui.dp(a, 18), Ui.dp(a, 18), Ui.dp(a, 16));
+        card.setPadding(Ui.dp(a, 18), Ui.dp(a, 20), Ui.dp(a, 18), Ui.dp(a, 16));
 
-        TextView eyebrow = Ui.text(a, "СЕЙЧАС В ВОЛНЕ", 9.5f, Theme.dim(), true);
-        eyebrow.setLetterSpacing(0.14f);
+        TextView eyebrow = Ui.overline(a, "Сейчас в волне");
         eyebrow.setGravity(Gravity.CENTER);
         card.addView(eyebrow);
 
         ImageLoader.RoundedImageView art = Widgets.cover(a, track.coverLarge.isEmpty()
-                ? track.coverUrl : track.coverLarge, 210, 16);
-        LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(Ui.dp(a, 210), Ui.dp(a, 210));
+                ? track.coverUrl : track.coverLarge, 206, 22);
+        LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(Ui.dp(a, 206), Ui.dp(a, 206));
         alp.gravity = Gravity.CENTER_HORIZONTAL;
-        alp.topMargin = Ui.dp(a, 12);
+        alp.topMargin = Ui.dp(a, 16);
         art.setLayoutParams(alp);
         art.setOnClickListener(v -> a.openPlayer());
         card.addView(art);
 
-        TextView title = Ui.text(a, track.title, 20, Theme.text(), true);
+        TextView title = Ui.text(a, track.title, 22, Theme.text(), true);
         title.setGravity(Gravity.CENTER);
         title.setSingleLine(true);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        title.setPadding(0, Ui.dp(a, 14), 0, 0);
+        title.setPadding(0, Ui.dp(a, 18), 0, 0);
         card.addView(title);
         TextView artist = Ui.text(a, track.artistLine(), 12.5f, Theme.dim(), false);
         artist.setGravity(Gravity.CENTER);
-        artist.setPadding(0, Ui.dp(a, 3), 0, 0);
+        artist.setPadding(0, Ui.dp(a, 5), 0, 0);
         card.addView(artist);
 
         LinearLayout controls = Ui.row(a);
         controls.setGravity(Gravity.CENTER);
-        controls.setPadding(0, Ui.dp(a, 14), 0, 0);
+        controls.setPadding(0, Ui.dp(a, 18), 0, Ui.dp(a, 2));
         boolean liked = Store.isLiked(track.id);
         View like = waveButton(R.drawable.ic_heart_fill, "Нравится",
                 liked ? Theme.accent() : Theme.dim(), v -> likeCurrent(true));
         View dislike = waveButton(R.drawable.ic_dislike, "Не очень",
                 Store.isDisliked(track.id) ? Theme.danger() : Theme.dim(), v -> likeCurrent(false));
-        FrameLayoutShim shim = null;
         View playBox = playButton(p.playing);
         View next = waveButton(R.drawable.ic_next, "Далее", Theme.text(), v -> Playback.get().next(true));
         controls.addView(like, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
@@ -209,23 +209,22 @@ public class WaveScreen extends Screen {
 
         TextView hint = Ui.text(a, "Оценки уходят в Яндекс и меняют поток", 10.5f, Theme.faint(), false);
         hint.setGravity(Gravity.CENTER);
-        hint.setPadding(0, Ui.dp(a, 10), 0, 0);
+        hint.setPadding(0, Ui.dp(a, 12), 0, 0);
         currentBox.addView(hint);
     }
-
-    private static class FrameLayoutShim {}
 
     private View waveButton(int icon, String label, int tint, View.OnClickListener click) {
         LinearLayout box = Ui.column(a);
         box.setGravity(Gravity.CENTER);
         box.setOnClickListener(click);
-        ImageView iv = Ui.icon(a, icon, 24, tint);
-        LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(Ui.dp(a, 24), Ui.dp(a, 24));
+        ImageView iv = Ui.icon(a, icon, 23, tint);
+        LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(Ui.dp(a, 23), Ui.dp(a, 23));
         ilp.gravity = Gravity.CENTER_HORIZONTAL;
         box.addView(iv, ilp);
-        TextView t = Ui.text(a, label, 9.5f, Theme.faint(), false);
+        TextView t = Ui.text(a, label.toUpperCase(java.util.Locale.getDefault()), 9, Theme.faint(), true);
+        t.setLetterSpacing(0.1f);
         t.setGravity(Gravity.CENTER);
-        t.setPadding(0, Ui.dp(a, 5), 0, 0);
+        t.setPadding(0, Ui.dp(a, 7), 0, 0);
         box.addView(t);
         return box;
     }
@@ -234,13 +233,15 @@ public class WaveScreen extends Screen {
         LinearLayout box = Ui.column(a);
         box.setGravity(Gravity.CENTER);
         FrameLayout circle = new FrameLayout(a);
-        circle.setBackground(Ui.bg(a, Theme.accent(), 26));
-        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(Ui.dp(a, 52), Ui.dp(a, 52));
+        GradientDrawable bg = Ui.gradient(a, Theme.accent(), Theme.accent(), 28);
+        circle.setBackground(bg);
+        circle.setElevation(Ui.dp(a, 8));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(Ui.dp(a, 58), Ui.dp(a, 58));
         clp.gravity = Gravity.CENTER_HORIZONTAL;
         circle.setLayoutParams(clp);
         ImageView icon = Ui.icon(a, playing ? R.drawable.ic_pause : R.drawable.ic_play,
-                26, Theme.accentText());
-        FrameLayout.LayoutParams ilp = new FrameLayout.LayoutParams(Ui.dp(a, 26), Ui.dp(a, 26));
+                25, Theme.accentText());
+        FrameLayout.LayoutParams ilp = new FrameLayout.LayoutParams(Ui.dp(a, 25), Ui.dp(a, 25));
         ilp.gravity = Gravity.CENTER;
         circle.addView(icon, ilp);
         circle.setOnClickListener(v -> {
@@ -248,9 +249,10 @@ public class WaveScreen extends Screen {
             updateCurrent();
         });
         box.addView(circle);
-        TextView t = Ui.text(a, playing ? "Пауза" : "Слушать", 9.5f, Theme.faint(), false);
+        TextView t = Ui.text(a, playing ? "ПАУЗА" : "СЛУШАТЬ", 9, Theme.faint(), true);
+        t.setLetterSpacing(0.1f);
         t.setGravity(Gravity.CENTER);
-        t.setPadding(0, Ui.dp(a, 5), 0, 0);
+        t.setPadding(0, Ui.dp(a, 7), 0, 0);
         box.addView(t);
         return box;
     }
@@ -284,26 +286,30 @@ public class WaveScreen extends Screen {
 
     private View hero(String buttonText, View.OnClickListener click) {
         LinearLayout card = Ui.column(a);
-        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                new int[]{Theme.surface2(), Theme.accentSoft(26)});
-        bg.setCornerRadius(Ui.dp(a, 20));
+        GradientDrawable bg = Ui.gradient(a, Theme.surface2(), Theme.accentSoft(30), 24);
+        bg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
         card.setBackground(bg);
-        card.setPadding(Ui.dp(a, 18), Ui.dp(a, 20), Ui.dp(a, 18), Ui.dp(a, 18));
+        card.setPadding(Ui.dp(a, 20), Ui.dp(a, 22), Ui.dp(a, 20), Ui.dp(a, 20));
         LinearLayout mark = Ui.row(a);
         mark.setGravity(Gravity.CENTER);
-        mark.setBackground(Ui.bg(a, Theme.accentSoft(22), 34));
+        mark.setBackground(Ui.bg(a, Theme.accentSoft(26), 34));
         mark.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 68), Ui.dp(a, 68)));
         mark.addView(Ui.icon(a, R.drawable.ic_wave, 30, Theme.accent()));
         card.addView(mark);
-        TextView title = Ui.title(a, "Моя волна", 23);
-        title.setPadding(0, Ui.dp(a, 14), 0, 0);
+        TextView eyebrow = Ui.overline(a, "Персональная станция");
+        eyebrow.setPadding(0, Ui.dp(a, 16), 0, 0);
+        card.addView(eyebrow);
+        TextView title = Ui.title(a, "Моя волна", 25);
+        title.setPadding(0, Ui.dp(a, 6), 0, 0);
         card.addView(title);
-        card.addView(Ui.text(a, "Бесконечная станция, которая учится на ваших оценках.",
-                12, Theme.dim(), false));
+        TextView sub = Ui.text(a, "Бесконечная станция, которая учится на ваших оценках.",
+                12.5f, Theme.dim(), false);
+        sub.setPadding(0, Ui.dp(a, 6), 0, 0);
+        card.addView(sub);
         TextView button = Ui.primaryButton(a, buttonText, click);
         LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        blp.topMargin = Ui.dp(a, 16);
+        blp.topMargin = Ui.dp(a, 18);
         button.setLayoutParams(blp);
         card.addView(button);
         return card;
@@ -325,23 +331,28 @@ public class WaveScreen extends Screen {
             Models.Track t = upcoming.get(i);
             final int target = start + i;
             LinearLayout row = Ui.row(a);
-            row.setPadding(Ui.dp(a, 4), Ui.dp(a, 6), Ui.dp(a, 2), Ui.dp(a, 6));
-            row.setBackground(Ui.bg(a, android.graphics.Color.TRANSPARENT, 10));
-            row.addView(Widgets.cover(a, t.coverUrl, 42, 7));
+            row.setPadding(Ui.dp(a, 4), Ui.dp(a, 7), Ui.dp(a, 2), Ui.dp(a, 7));
+            row.setBackground(Ui.bg(a, android.graphics.Color.TRANSPARENT, 14));
+            row.addView(Widgets.cover(a, t.coverUrl, 44, 10));
             LinearLayout copy = Ui.column(a);
             LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                     ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-            clp.leftMargin = Ui.dp(a, 10);
+            clp.leftMargin = Ui.dp(a, 13);
             copy.setLayoutParams(clp);
             TextView title = Ui.text(a, t.title, 13.5f, Theme.text(), true);
             title.setSingleLine(true);
             title.setEllipsize(android.text.TextUtils.TruncateAt.END);
             copy.addView(title);
-            copy.addView(Ui.text(a, t.artistLine(), 11, Theme.dim(), false));
+            TextView sub = Ui.text(a, t.artistLine(), 11, Theme.dim(), false);
+            sub.setSingleLine(true);
+            sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            sub.setPadding(0, Ui.dp(a, 2), 0, 0);
+            copy.addView(sub);
             row.addView(copy);
             row.addView(Ui.iconButton(a, R.drawable.ic_more, 36, 18, Theme.faint(),
                     v -> a.openTrackMenu(t, null, null)));
             row.setOnClickListener(v -> Playback.get().playAt(target));
+            Ui.ripple(row, 0x14FFFFFF);
             a.registerRow(t.id, row, title);
             upcomingBox.addView(row);
         }

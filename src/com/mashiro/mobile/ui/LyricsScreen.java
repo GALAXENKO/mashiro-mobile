@@ -11,6 +11,7 @@ import com.mashiro.mobile.App;
 import com.mashiro.mobile.MainActivity;
 import com.mashiro.mobile.Theme;
 import com.mashiro.mobile.Ui;
+import com.mashiro.mobile.Widgets;
 import com.mashiro.mobile.api.Models;
 import com.mashiro.mobile.audio.Playback;
 
@@ -28,6 +29,7 @@ public final class LyricsScreen {
     private Playback.Listener listener;
     private boolean synced = false;
     private ScrollView scroll;
+    private TextView sourceView;
 
     public LyricsScreen(MainActivity a, Models.Track track) {
         this.a = a;
@@ -37,38 +39,55 @@ public final class LyricsScreen {
 
     public void show() {
         LinearLayout content = Ui.column(a);
-        content.setPadding(Ui.dp(a, 18), 0, Ui.dp(a, 12), Ui.dp(a, 10));
+        content.setPadding(Ui.dp(a, 20), 0, Ui.dp(a, 16), Ui.dp(a, 12));
 
         LinearLayout head = Ui.row(a);
-        head.setPadding(0, 0, 0, Ui.dp(a, 6));
+        head.setPadding(0, 0, 0, Ui.dp(a, 12));
         LinearLayout copy = Ui.column(a);
         copy.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        copy.addView(Ui.title(a, "Текст песни", 19));
-        TextView sub = Ui.text(a, track.title + " — " + track.artistLine(), 11.5f,
-                Theme.dim(), false);
+        TextView overline = Ui.overline(a, "Текст песни");
+        overline.setTextColor(Theme.accent());
+        copy.addView(overline);
+        TextView heading = Ui.title(a, track.title, 20);
+        heading.setSingleLine(true);
+        heading.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        heading.setPadding(0, Ui.dp(a, 5), 0, 0);
+        copy.addView(heading);
+        TextView sub = Ui.text(a, track.artistLine(), 12, Theme.dim(), false);
         sub.setSingleLine(true);
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        sub.setPadding(0, Ui.dp(a, 2), 0, 0);
+        sub.setPadding(0, Ui.dp(a, 3), 0, 0);
         copy.addView(sub);
+
+        sourceView = Ui.text(a, "Ищем в открытых источниках…", 10, Theme.faint(), false);
+        sourceView.setSingleLine(true);
+        sourceView.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        sourceView.setLetterSpacing(0.03f);
+        sourceView.setPadding(0, Ui.dp(a, 8), 0, 0);
+        copy.addView(sourceView);
         head.addView(copy);
         content.addView(head);
+
+        content.addView(Widgets.rowDivider(a));
 
         LinearLayout loading = Ui.column(a);
         loading.setGravity(android.view.Gravity.CENTER);
         loading.setPadding(0, Ui.dp(a, 80), 0, Ui.dp(a, 80));
         loading.addView(Ui.progress(a, true));
-        TextView loadingText = Ui.text(a, "Загружаем текст…", 13, Theme.faint(), false);
-        loadingText.setPadding(0, Ui.dp(a, 12), 0, 0);
+        TextView loadingText = Ui.text(a, "Загружаем текст…", 12.5f, Theme.faint(), false);
+        loadingText.setLetterSpacing(0.04f);
+        loadingText.setPadding(0, Ui.dp(a, 14), 0, 0);
         loading.addView(loadingText);
         list.addView(loading);
 
         ScrollView scrollView = new ScrollView(a);
         scrollView.setClipToPadding(false);
+        scrollView.setPadding(0, Ui.dp(a, 6), 0, 0);
         scrollView.addView(list, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         scroll = scrollView;
-        int height = (int) (Ui.screenWidth(a) * 0.8f);
+        int height = (int) (Ui.screenWidth(a) * 0.86f);
         content.addView(scrollView, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, height));
 
@@ -87,9 +106,21 @@ public final class LyricsScreen {
 
     private void render(Models.Lyrics lyrics) {
         if (lyrics == null || lyrics.lines.isEmpty()) {
+            if (sourceView != null) sourceView.setText("Ничего не нашлось");
             empty("Текста нет",
-                    "Для этого трека не удалось найти текст песни");
+                    "Мы поискали в LRCLIB, Netease, Яндекс Музыке и lyrics.ovh — "
+                            + "для этого трека текст не опубликован");
             return;
+        }
+        if (sourceView != null) {
+            StringBuilder label = new StringBuilder()
+                    .append(lyrics.source == null || lyrics.source.isEmpty()
+                            ? "Открытый каталог" : lyrics.source);
+            label.append(lyrics.synced ? "  ·  синхронизированный текст" : "  ·  обычный текст");
+            if (!lyrics.writers.isEmpty()) {
+                label.append("  ·  ").append(android.text.TextUtils.join(", ", lyrics.writers));
+            }
+            sourceView.setText(label.toString());
         }
         lines.clear();
         lines.addAll(lyrics.lines);
@@ -98,9 +129,9 @@ public final class LyricsScreen {
         list.removeAllViews();
         for (Models.LyricLine line : lines) {
             TextView t = Ui.text(a, line.text == null || line.text.isEmpty()
-                    ? "\u00A0" : line.text, 15.5f, Theme.dim(), false);
-            t.setLineSpacing(0, 1.35f);
-            t.setPadding(0, Ui.dp(a, 5), 0, Ui.dp(a, 5));
+                    ? "\u00A0" : line.text, 16, Theme.dim(), false);
+            t.setLineSpacing(0, 1.42f);
+            t.setPadding(0, Ui.dp(a, 6), 0, Ui.dp(a, 6));
             t.setVisibility(View.VISIBLE);
             list.addView(t, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -148,11 +179,17 @@ public final class LyricsScreen {
         synced = false;
         LinearLayout box = Ui.column(a);
         box.setGravity(android.view.Gravity.CENTER);
-        box.setPadding(0, Ui.dp(a, 90), 0, Ui.dp(a, 90));
-        box.addView(Ui.title(a, title, 18));
+        box.setPadding(Ui.dp(a, 16), Ui.dp(a, 72), Ui.dp(a, 16), Ui.dp(a, 72));
+        box.addView(Widgets.circleIcon(a, com.mashiro.mobile.R.drawable.ic_lyrics, 54,
+                Theme.surface2(), Theme.faint()));
+        TextView heading = Ui.title(a, title, 17);
+        heading.setGravity(android.view.Gravity.CENTER);
+        heading.setPadding(0, Ui.dp(a, 16), 0, 0);
+        box.addView(heading);
         TextView sub = Ui.text(a, message, 12.5f, Theme.dim(), false);
         sub.setGravity(android.view.Gravity.CENTER);
-        sub.setPadding(Ui.dp(a, 12), Ui.dp(a, 10), Ui.dp(a, 12), 0);
+        sub.setLineSpacing(0, 1.3f);
+        sub.setPadding(Ui.dp(a, 12), Ui.dp(a, 8), Ui.dp(a, 12), 0);
         box.addView(sub);
         list.addView(box);
     }

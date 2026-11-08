@@ -22,24 +22,25 @@ public final class PlaylistMenu {
     public static void show(MainActivity a, Models.Playlist playlist, Runnable onChanged) {
         if (playlist == null) return;
         LinearLayout content = Ui.column(a);
-        content.setPadding(Ui.dp(a, 16), 0, Ui.dp(a, 8), Ui.dp(a, 8));
+        content.setPadding(Ui.dp(a, 20), 0, Ui.dp(a, 20), Ui.dp(a, 12));
 
         LinearLayout head = Ui.row(a);
-        head.setPadding(0, 0, 0, Ui.dp(a, 8));
-        head.addView(Widgets.cover(a, playlist.coverUrl, 52, 9));
+        head.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        head.setPadding(0, Ui.dp(a, 2), 0, Ui.dp(a, 16));
+        head.addView(Widgets.cover(a, playlist.coverUrl, 54, 12));
         LinearLayout copy = Ui.column(a);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        clp.leftMargin = Ui.dp(a, 12);
+        clp.leftMargin = Ui.dp(a, 14);
         copy.setLayoutParams(clp);
-        TextView title = Ui.title(a, playlist.title, 17);
+        TextView title = Ui.title(a, playlist.title, 18);
         title.setSingleLine(true);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         copy.addView(title);
         TextView sub = Ui.text(a, playlist.trackCount + " "
                 + Ui.plural(playlist.trackCount, "трек", "трека", "треков"),
                 12, Theme.dim(), false);
-        sub.setPadding(0, Ui.dp(a, 2), 0, 0);
+        sub.setPadding(0, Ui.dp(a, 3), 0, 0);
         copy.addView(sub);
         head.addView(copy);
         content.addView(head);
@@ -47,24 +48,26 @@ public final class PlaylistMenu {
         final Dialog dialog = Ui.sheet(a, content);
         final boolean own = playlist.ownerUid <= 0 || playlist.ownerUid == Store.uid();
 
-        addRow(a, content, R.drawable.ic_play, "Воспроизвести", () -> {
+        Section main = new Section(a);
+        main.add(a, R.drawable.ic_play, "Воспроизвести", null, () -> {
             dialog.dismiss();
             if (!playlist.tracks.isEmpty()) a.playList(playlist.tracks, 0);
         });
-        addRow(a, content, R.drawable.ic_shuffle, "Перемешать", () -> {
+        main.add(a, R.drawable.ic_shuffle, "Перемешать", null, () -> {
             dialog.dismiss();
             if (!playlist.tracks.isEmpty()) a.playShuffled(playlist.tracks);
         });
-        addRow(a, content, R.drawable.ic_share, "Поделиться", () -> {
+        main.add(a, R.drawable.ic_share, "Поделиться", null, () -> {
             dialog.dismiss();
             long owner = playlist.ownerUid > 0 ? playlist.ownerUid : Store.uid();
             a.share(playlist.title + " — плейлист в Яндекс Музыке\n"
                     + "https://music.yandex.ru/users/" + owner + "/playlists/" + playlist.kind);
         });
+        addSection(a, content, main.box);
 
         if (own) {
-            content.addView(Ui.divider(a));
-            addRow(a, content, R.drawable.ic_edit, "Переименовать", () -> {
+            Section edit = new Section(a);
+            edit.add(a, R.drawable.ic_edit, "Переименовать", null, () -> {
                 dialog.dismiss();
                 Ui.input(a, "Переименовать плейлист", playlist.title, "Название",
                         "Сохранить", false, name -> {
@@ -78,8 +81,8 @@ public final class PlaylistMenu {
                             });
                         }).show();
             });
-            addRow(a, content, R.drawable.ic_eye,
-                    playlist.isPublic ? "Сделать приватным" : "Сделать публичным", () -> {
+            edit.add(a, R.drawable.ic_eye,
+                    playlist.isPublic ? "Сделать приватным" : "Сделать публичным", null, () -> {
                         dialog.dismiss();
                         final boolean next = !playlist.isPublic;
                         a.bg(() -> {
@@ -91,11 +94,14 @@ public final class PlaylistMenu {
                             if (onChanged != null) onChanged.run();
                         });
                     });
-            addRow(a, content, R.drawable.ic_plus, "Добавить треки", () -> {
+            edit.add(a, R.drawable.ic_plus, "Добавить треки", null, () -> {
                 dialog.dismiss();
                 Ui.toast(a, "Откройте поиск и добавьте трек через меню «⋯»");
             });
-            addRow(a, content, R.drawable.ic_trash, "Удалить плейлист", () -> {
+            addSection(a, content, edit.box);
+
+            Section danger = new Section(a);
+            danger.add(a, R.drawable.ic_trash, "Удалить плейлист", Theme.danger(), () -> {
                 dialog.dismiss();
                 Ui.confirm(a, "Удалить плейлист?",
                         "«" + playlist.title + "» будет удалён без возможности восстановления",
@@ -108,22 +114,46 @@ public final class PlaylistMenu {
                             a.closeTop();
                         })).show();
             });
+            addSection(a, content, danger.box);
         }
 
         dialog.show();
     }
 
-    private static void addRow(MainActivity a, LinearLayout parent, int icon, String label,
-                               Runnable click) {
+    /** Grouped block of action rows with hairline separators between them. */
+    private static final class Section {
+        final LinearLayout box;
+        int count;
+
+        Section(MainActivity a) {
+            box = Widgets.group(a);
+        }
+
+        void add(MainActivity a, int icon, String label, Integer tint, Runnable click) {
+            if (count > 0) box.addView(Widgets.rowDivider(a));
+            box.addView(actionRow(a, icon, label, tint, click));
+            count++;
+        }
+    }
+
+    private static void addSection(MainActivity a, LinearLayout content, LinearLayout box) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = Ui.dp(a, 10);
+        content.addView(box, lp);
+    }
+
+    private static LinearLayout actionRow(MainActivity a, int icon, String label,
+                                          Integer tint, Runnable click) {
         LinearLayout row = Ui.row(a);
-        row.setBackground(Ui.bg(a, 0x00000000, 10));
-        row.setPadding(Ui.dp(a, 10), Ui.dp(a, 10), Ui.dp(a, 8), Ui.dp(a, 10));
-        int tint = label.equals("Удалить плейлист") ? Theme.danger() : Theme.text();
-        row.addView(Widgets.circleIcon(a, icon, 32, Theme.surface2(), tint));
+        row.setBackground(Ui.bg(a, 0x00000000, 0));
+        row.setPadding(Ui.dp(a, 14), Ui.dp(a, 11), Ui.dp(a, 12), Ui.dp(a, 11));
+        row.addView(Widgets.circleIcon(a, icon, 34, Theme.surface2(),
+                tint != null ? tint : Theme.text()));
         LinearLayout.LayoutParams lb = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        lb.leftMargin = Ui.dp(a, 12);
-        TextView t = Ui.text(a, label, 14, tint, false);
+        lb.leftMargin = Ui.dp(a, 13);
+        TextView t = Ui.text(a, label, 14, tint != null ? tint : Theme.text(), false);
         t.setLayoutParams(lb);
         row.addView(t);
         row.setClickable(true);
@@ -131,6 +161,6 @@ public final class PlaylistMenu {
         row.setOnClickListener(v -> {
             if (click != null) click.run();
         });
-        parent.addView(row);
+        return row;
     }
 }

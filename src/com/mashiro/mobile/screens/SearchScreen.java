@@ -54,9 +54,13 @@ public class SearchScreen extends Screen {
                 R.drawable.ic_settings, v -> a.openSettings()));
 
         LinearLayout bar = Ui.row(a);
-        bar.setBackground(Ui.bg(a, Theme.surface2(), 15));
-        bar.setPadding(Ui.dp(a, 14), Ui.dp(a, 2), Ui.dp(a, 6), Ui.dp(a, 2));
-        bar.addView(Ui.icon(a, R.drawable.ic_search, 19, Theme.dim()));
+        android.graphics.drawable.GradientDrawable barBg =
+                Ui.gradient(a, Theme.surface2(), Theme.surface(), 16);
+        barBg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
+        bar.setBackground(barBg);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setPadding(Ui.dp(a, 14), Ui.dp(a, 1), Ui.dp(a, 6), Ui.dp(a, 1));
+        bar.addView(Ui.icon(a, R.drawable.ic_search, 19, Theme.faint()));
 
         input = new EditText(a);
         input.setHint("Что послушаем?");
@@ -66,12 +70,13 @@ public class SearchScreen extends Screen {
         input.setBackground(null);
         input.setSingleLine(true);
         input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-        input.setPadding(Ui.dp(a, 10), Ui.dp(a, 13), Ui.dp(a, 8), Ui.dp(a, 13));
+        input.setPadding(Ui.dp(a, 11), Ui.dp(a, 14), Ui.dp(a, 8), Ui.dp(a, 14));
         input.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         bar.addView(input);
 
         clear = Ui.text(a, "✕", 15, Theme.faint(), false);
+        clear.setGravity(Gravity.CENTER);
         clear.setPadding(Ui.dp(a, 10), Ui.dp(a, 8), Ui.dp(a, 12), Ui.dp(a, 8));
         clear.setVisibility(View.GONE);
         clear.setOnClickListener(v -> {
@@ -184,7 +189,7 @@ public class SearchScreen extends Screen {
                 Store.clearSearches();
                 showHistory();
             });
-            head.setPadding(0, Ui.dp(a, 20), 0, Ui.dp(a, 4));
+            head.setPadding(0, Ui.dp(a, 22), 0, Ui.dp(a, 6));
             historyBox.addView(head);
             LinearLayout row = Widgets.horizontal(a);
             for (String value : searches) {
@@ -250,9 +255,9 @@ public class SearchScreen extends Screen {
             }
             if (r.tracks.size() > limit) {
                 TextView more = Ui.text(a, "Ещё " + (r.tracks.size() - limit) + " "
-                        + Ui.plural(r.tracks.size() - limit, "трек", "трека", "треков"),
-                        12, Theme.accent(), true);
-                more.setPadding(0, Ui.dp(a, 8), 0, 0);
+                        + Ui.plural(r.tracks.size() - limit, "трек", "трека", "треков")
+                        + "  ›", 12, Theme.accent(), true);
+                more.setPadding(0, Ui.dp(a, 12), 0, Ui.dp(a, 2));
                 more.setOnClickListener(v -> a.playList(r.tracks, 0));
                 resultsBox.addView(more);
             }
@@ -297,9 +302,9 @@ public class SearchScreen extends Screen {
             resultsBox.addView(Widgets.horizontalScroll(a, row));
         }
 
-        TextView hint = Ui.text(a, "Результаты поиска Яндекс Музыки", 10.5f, Theme.faint(), false);
+        TextView hint = Ui.overline(a, "Яндекс Музыка");
         hint.setGravity(Gravity.CENTER);
-        hint.setPadding(0, Ui.dp(a, 24), 0, 0);
+        hint.setPadding(0, Ui.dp(a, 28), 0, 0);
         resultsBox.addView(hint);
     }
 }

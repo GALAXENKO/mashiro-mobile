@@ -74,15 +74,23 @@ public class ArtistScreen extends Screen {
 
         LinearLayout hero = Ui.column(a);
         hero.setGravity(Gravity.CENTER_HORIZONTAL);
-        hero.setPadding(0, Ui.dp(a, 4), 0, Ui.dp(a, 4));
+        hero.setPadding(0, Ui.dp(a, 8), 0, Ui.dp(a, 2));
         LinearLayout avatarBox = Ui.row(a);
         avatarBox.setGravity(Gravity.CENTER);
-        avatarBox.addView(Widgets.avatar(a, artist.coverUrl, 118));
+        View avatar = Widgets.avatar(a, artist.coverUrl, 126);
+        avatar.setElevation(Ui.dp(a, 12));
+        avatarBox.addView(avatar);
         hero.addView(avatarBox);
 
-        TextView name = Ui.title(a, artist.name, 26);
+        TextView eyebrow = Ui.overline(a, "Артист");
+        eyebrow.setGravity(Gravity.CENTER);
+        eyebrow.setPadding(0, Ui.dp(a, 20), 0, 0);
+        hero.addView(eyebrow);
+
+        TextView name = Ui.title(a, artist.name, 25);
         name.setGravity(Gravity.CENTER);
-        name.setPadding(0, Ui.dp(a, 16), 0, 0);
+        name.setMaxLines(2);
+        name.setPadding(0, Ui.dp(a, 7), 0, 0);
         hero.addView(name);
 
         String stats = "";
@@ -96,17 +104,17 @@ public class ArtistScreen extends Screen {
             stats = stats.isEmpty() ? tracksText : stats + " · " + tracksText;
         }
         if (!stats.isEmpty()) {
-            TextView sub = Ui.text(a, stats, 11.5f, Theme.dim(), false);
+            TextView sub = Ui.text(a, stats, 12, Theme.dim(), false);
             sub.setGravity(Gravity.CENTER);
-            sub.setPadding(0, Ui.dp(a, 6), 0, 0);
+            sub.setPadding(0, Ui.dp(a, 8), 0, 0);
             hero.addView(sub);
         }
         content.addView(hero);
 
         if (!page.description.isEmpty()) {
             TextView description = Ui.text(a, page.description, 12.5f, Theme.dim(), false);
-            description.setLineSpacing(0, 1.25f);
-            description.setPadding(0, Ui.dp(a, 14), 0, 0);
+            description.setLineSpacing(0, 1.35f);
+            description.setPadding(0, Ui.dp(a, 18), 0, 0);
             description.setMaxLines(expanded ? Integer.MAX_VALUE : 4);
             description.setEllipsize(expanded ? null : android.text.TextUtils.TruncateAt.END);
             description.setOnClickListener(v -> {
@@ -117,7 +125,7 @@ public class ArtistScreen extends Screen {
         }
 
         LinearLayout actions = Ui.row(a);
-        actions.setPadding(0, Ui.dp(a, 16), 0, Ui.dp(a, 4));
+        actions.setPadding(0, Ui.dp(a, 18), 0, Ui.dp(a, 6));
         TextView play = Ui.primaryButton(a, "Слушать", v -> {
             List<Models.Track> tracks = visibleTracks();
             if (!tracks.isEmpty()) a.playList(tracks, 0);
@@ -130,7 +138,7 @@ public class ArtistScreen extends Screen {
         });
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        slp.leftMargin = Ui.dp(a, 8);
+        slp.leftMargin = Ui.dp(a, 9);
         shuffle.setLayoutParams(slp);
         actions.addView(play);
         actions.addView(shuffle);
@@ -140,7 +148,7 @@ public class ArtistScreen extends Screen {
         content.addView(Widgets.sectionHeader(a,
                 allLoaded ? "Все треки" : "Популярные треки", null, null));
         if (tracks.isEmpty()) {
-            content.addView(Ui.text(a, "Нет доступных треков", 12, Theme.faint(), false));
+            content.addView(Ui.text(a, "Нет доступных треков", 12.5f, Theme.faint(), false));
         } else {
             for (int i = 0; i < tracks.size(); i++) {
                 content.addView(Widgets.numberedRow(a, tracks, i, null));
@@ -148,10 +156,10 @@ public class ArtistScreen extends Screen {
         }
 
         if (!allLoaded) {
-            TextView more = Ui.text(a, loadingAll ? "Загружаем…" : "Показать все треки",
-                    13, Theme.accent(), true);
+            TextView more = Ui.text(a, loadingAll ? "Загружаем…" : "Показать все треки  ›",
+                    12.5f, Theme.accent(), true);
             more.setGravity(Gravity.CENTER);
-            more.setPadding(0, Ui.dp(a, 14), 0, Ui.dp(a, 6));
+            more.setPadding(0, Ui.dp(a, 16), 0, Ui.dp(a, 6));
             more.setOnClickListener(v -> loadAll());
             content.addView(more);
         }
@@ -160,10 +168,10 @@ public class ArtistScreen extends Screen {
             content.addView(Widgets.sectionHeader(a, "Альбомы", null, null));
             LinearLayout row = Widgets.horizontal(a);
             for (Models.Album album : page.albums) {
-                View card = Widgets.albumCard(a, album, 132);
+                View card = Widgets.albumCard(a, album, 136);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                        Ui.dp(a, 132), ViewGroup.LayoutParams.WRAP_CONTENT);
-                lp.rightMargin = Ui.dp(a, 12);
+                        Ui.dp(a, 136), ViewGroup.LayoutParams.WRAP_CONTENT);
+                lp.rightMargin = Ui.dp(a, 14);
                 row.addView(card, lp);
             }
             content.addView(Widgets.horizontalScroll(a, row));

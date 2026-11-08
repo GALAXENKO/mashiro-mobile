@@ -33,7 +33,7 @@ public final class Widgets {
         page.scroll.setBackgroundColor(Theme.bg());
         page.scroll.setClipToPadding(false);
         page.body = Ui.column(a);
-        page.body.setPadding(Ui.dp(a, 18), Ui.dp(a, 6), Ui.dp(a, 18), Ui.dp(a, 34));
+        page.body.setPadding(Ui.dp(a, 20), Ui.dp(a, 2), Ui.dp(a, 20), Ui.dp(a, 36));
         page.scroll.addView(page.body, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return page;
@@ -42,29 +42,30 @@ public final class Widgets {
     public static LinearLayout header(MainActivity a, String title, String subtitle,
                                       boolean back, int rightIcon, View.OnClickListener right) {
         LinearLayout row = Ui.row(a);
-        row.setPadding(0, Ui.dp(a, 10), 0, Ui.dp(a, 12));
+        row.setPadding(0, Ui.dp(a, 12), 0, Ui.dp(a, 10));
         if (back) {
-            View b = Ui.iconButton(a, R.drawable.ic_back, 40, 21, Theme.text(),
+            View b = Ui.iconButton(a, R.drawable.ic_back, 42, 21, Theme.text(),
                     v -> a.onBackPressed());
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(Ui.dp(a, 40), Ui.dp(a, 40));
-            lp.rightMargin = Ui.dp(a, 8);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(Ui.dp(a, 42), Ui.dp(a, 42));
+            lp.rightMargin = Ui.dp(a, 10);
             row.addView(b, lp);
         }
         LinearLayout copy = Ui.column(a);
         copy.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView t = Ui.title(a, title, 25);
+        TextView t = Ui.title(a, title, 26);
         t.setSingleLine(true);
         t.setEllipsize(TextUtils.TruncateAt.END);
         copy.addView(t);
         if (subtitle != null && !subtitle.isEmpty()) {
-            TextView s = Ui.text(a, subtitle, 12, Theme.dim(), false);
+            TextView s = Ui.text(a, subtitle, 11.5f, Theme.faint(), false);
             s.setSingleLine(true);
             s.setEllipsize(TextUtils.TruncateAt.END);
+            s.setPadding(0, Ui.dp(a, 2), 0, 0);
             copy.addView(s);
         }
         row.addView(copy);
         if (rightIcon != 0) {
-            row.addView(Ui.iconButton(a, rightIcon, 40, 20, Theme.text(), right));
+            row.addView(Ui.iconButton(a, rightIcon, 42, 20, Theme.text(), right));
         }
         return row;
     }
@@ -72,17 +73,65 @@ public final class Widgets {
     public static LinearLayout sectionHeader(MainActivity a, String title, String action,
                                              View.OnClickListener click) {
         LinearLayout row = Ui.row(a);
-        row.setPadding(0, Ui.dp(a, 22), 0, Ui.dp(a, 10));
-        TextView t = Ui.text(a, title, 18, Theme.text(), true);
+        row.setPadding(0, Ui.dp(a, 24), 0, Ui.dp(a, 10));
+        TextView t = Ui.overline(a, title);
         t.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(t);
         if (action != null && !action.isEmpty()) {
-            TextView more = Ui.text(a, action, 12, Theme.dim(), true);
-            more.setPadding(Ui.dp(a, 8), Ui.dp(a, 4), 0, Ui.dp(a, 4));
+            TextView more = Ui.text(a, action, 12, Theme.accent(), true);
+            more.setPadding(Ui.dp(a, 8), Ui.dp(a, 2), 0, Ui.dp(a, 2));
             more.setOnClickListener(click);
             row.addView(more);
         }
         return row;
+    }
+
+    /** Rounded container that groups related rows with hairline separators. */
+    public static LinearLayout group(MainActivity a) {
+        LinearLayout box = Ui.column(a);
+        box.setBackground(Ui.strokeBg(a, Theme.surface(), 18, Theme.border(), 1));
+        box.setPadding(0, Ui.dp(a, 4), 0, Ui.dp(a, 4));
+        return box;
+    }
+
+    /** Row for a grouped settings list; no outer border, no bottom margin. */
+    public static LinearLayout listRow(MainActivity a, int icon, String title, String subtitle,
+                                       String value, Runnable click) {
+        LinearLayout row = Ui.row(a);
+        row.setBackground(Ui.bg(a, Color.TRANSPARENT, 0));
+        row.setPadding(Ui.dp(a, 14), Ui.dp(a, 12), Ui.dp(a, 12), Ui.dp(a, 12));
+        row.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (icon != 0) {
+            row.addView(circleIcon(a, icon, 36, Theme.surface2(), Theme.text()));
+        }
+        LinearLayout copy = Ui.column(a);
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        if (icon != 0) clp.leftMargin = Ui.dp(a, 12);
+        copy.setLayoutParams(clp);
+        copy.addView(Ui.text(a, title, 14, Theme.text(), true));
+        if (subtitle != null && !subtitle.isEmpty()) {
+            TextView sub = Ui.text(a, subtitle, 11.5f, Theme.dim(), false);
+            sub.setMaxLines(2);
+            sub.setPadding(0, Ui.dp(a, 1), 0, 0);
+            copy.addView(sub);
+        }
+        row.addView(copy);
+        if (value != null && !value.isEmpty()) {
+            TextView action = Ui.text(a, value, 12, Theme.accent(), true);
+            action.setPadding(Ui.dp(a, 8), Ui.dp(a, 2), Ui.dp(a, 2), Ui.dp(a, 2));
+            row.addView(action);
+        }
+        if (click != null) {
+            row.setOnClickListener(v -> click.run());
+            Ui.ripple(row, Theme.light() ? 0x0F101014 : 0x14FFFFFF);
+        }
+        return row;
+    }
+
+    public static View rowDivider(MainActivity a) {
+        return Ui.insetDivider(a, 62);
     }
 
     public static ImageLoader.RoundedImageView cover(Context c, String url, int sizeDp, float radiusDp) {
@@ -121,9 +170,9 @@ public final class Widgets {
         row.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        ImageLoader.RoundedImageView art = cover(a, track.coverUrl, 46, 8);
+        ImageLoader.RoundedImageView art = cover(a, track.coverUrl, 46, 10);
         LinearLayout.LayoutParams artLp = new LinearLayout.LayoutParams(Ui.dp(a, 46), Ui.dp(a, 46));
-        artLp.rightMargin = Ui.dp(a, 12);
+        artLp.rightMargin = Ui.dp(a, 13);
         row.addView(art, artLp);
 
         LinearLayout copy = Ui.column(a);
@@ -134,6 +183,7 @@ public final class Widgets {
         TextView sub = Ui.text(a, track.artistLine(), 11.5f, Theme.dim(), false);
         sub.setSingleLine(true);
         sub.setEllipsize(TextUtils.TruncateAt.END);
+        sub.setPadding(0, Ui.dp(a, 2), 0, 0);
         copy.addView(title);
         copy.addView(sub);
         row.addView(copy);
@@ -167,7 +217,7 @@ public final class Widgets {
 
         TextView num = Ui.text(a, String.valueOf(i + 1), 12.5f, Theme.faint(), true);
         num.setGravity(Gravity.CENTER);
-        num.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 28),
+        num.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 30),
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         row.addView(num);
 
@@ -181,6 +231,7 @@ public final class Widgets {
         TextView artist = Ui.text(a, track.artistLine(), 11.5f, Theme.dim(), false);
         artist.setSingleLine(true);
         artist.setEllipsize(TextUtils.TruncateAt.END);
+        artist.setPadding(0, Ui.dp(a, 2), 0, 0);
         copy.addView(artist);
         row.addView(copy);
 
@@ -218,9 +269,9 @@ public final class Widgets {
         num.setGravity(Gravity.CENTER);
         num.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 26), ViewGroup.LayoutParams.WRAP_CONTENT));
         row.addView(num);
-        ImageLoader.RoundedImageView art = cover(a, track.coverUrl, 42, 7);
-        LinearLayout.LayoutParams artLp = new LinearLayout.LayoutParams(Ui.dp(a, 42), Ui.dp(a, 42));
-        artLp.rightMargin = Ui.dp(a, 10);
+        ImageLoader.RoundedImageView art = cover(a, track.coverUrl, 44, 10);
+        LinearLayout.LayoutParams artLp = new LinearLayout.LayoutParams(Ui.dp(a, 44), Ui.dp(a, 44));
+        artLp.rightMargin = Ui.dp(a, 12);
         row.addView(art, artLp);
         LinearLayout copy = Ui.column(a);
         copy.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
@@ -228,7 +279,11 @@ public final class Widgets {
         title.setSingleLine(true);
         title.setEllipsize(TextUtils.TruncateAt.END);
         copy.addView(title);
-        copy.addView(Ui.text(a, track.artistLine(), 11.5f, Theme.dim(), false));
+        TextView sub = Ui.text(a, track.artistLine(), 11.5f, Theme.dim(), false);
+        sub.setSingleLine(true);
+        sub.setEllipsize(TextUtils.TruncateAt.END);
+        sub.setPadding(0, Ui.dp(a, 2), 0, 0);
+        copy.addView(sub);
         row.addView(copy);
         if (onClick != null) row.setOnClickListener(v -> onClick.run());
         a.registerRow(track.id, row, title);
@@ -240,10 +295,10 @@ public final class Widgets {
         card.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, widthDp),
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         FrameLayout artBox = new FrameLayout(a);
-        ImageLoader.RoundedImageView art = cover(a, playlist.coverUrl, widthDp, 12);
+        ImageLoader.RoundedImageView art = cover(a, playlist.coverUrl, widthDp, 14);
         artBox.addView(art);
-        View play = circleIcon(a, R.drawable.ic_play, 30, Theme.accent(), Theme.accentText());
-        FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(Ui.dp(a, 30), Ui.dp(a, 30));
+        View play = circleIcon(a, R.drawable.ic_play, 32, Theme.accent(), Theme.accentText());
+        FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(Ui.dp(a, 32), Ui.dp(a, 32));
         plp.gravity = Gravity.BOTTOM | Gravity.END;
         plp.setMargins(0, 0, Ui.dp(a, 8), Ui.dp(a, 8));
         play.setOnClickListener(v -> a.bg(() -> App.api.playlistOf(playlist.ownerUid, playlist.kind),
@@ -387,9 +442,9 @@ public final class Widgets {
 
     public static LinearLayout actionChip(MainActivity a, int icon, String text, Runnable click) {
         LinearLayout box = Ui.row(a);
-        box.setBackground(Ui.strokeBg(a, Theme.surface(), 13, Theme.border(), 1));
-        box.setPadding(Ui.dp(a, 13), Ui.dp(a, 11), Ui.dp(a, 13), Ui.dp(a, 11));
-        ImageView iv = Ui.icon(a, icon, 17, Theme.text());
+        box.setBackground(Ui.strokeBg(a, Theme.surface2(), 14, Theme.hairline(), 1));
+        box.setPadding(Ui.dp(a, 14), Ui.dp(a, 11), Ui.dp(a, 14), Ui.dp(a, 11));
+        ImageView iv = Ui.icon(a, icon, 17, Theme.accent());
         LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(Ui.dp(a, 17), Ui.dp(a, 17));
         ilp.rightMargin = Ui.dp(a, 8);
         box.addView(iv, ilp);
@@ -403,20 +458,25 @@ public final class Widgets {
     public static LinearLayout actionCard(MainActivity a, int icon, String title, String subtitle,
                                           Runnable click) {
         LinearLayout box = Ui.row(a);
-        box.setBackground(Ui.strokeBg(a, Theme.surface(), 15, Theme.border(), 1));
-        box.setPadding(Ui.dp(a, 14), Ui.dp(a, 13), Ui.dp(a, 14), Ui.dp(a, 13));
+        android.graphics.drawable.GradientDrawable bg =
+                Ui.gradient(a, Theme.surface2(), Theme.surface(), 16);
+        bg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
+        box.setBackground(bg);
+        box.setPadding(Ui.dp(a, 15), Ui.dp(a, 14), Ui.dp(a, 14), Ui.dp(a, 14));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.bottomMargin = Ui.dp(a, 8);
+        lp.bottomMargin = Ui.dp(a, 9);
         box.setLayoutParams(lp);
-        box.addView(circleIcon(a, icon, 38, Theme.surface2(), Theme.text()));
+        box.addView(circleIcon(a, icon, 38, Theme.surface3(), Theme.text()));
         LinearLayout copy = Ui.column(a);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        clp.leftMargin = Ui.dp(a, 12);
+        clp.leftMargin = Ui.dp(a, 13);
         copy.setLayoutParams(clp);
         copy.addView(Ui.text(a, title, 14, Theme.text(), true));
         if (subtitle != null && !subtitle.isEmpty()) {
-            copy.addView(Ui.text(a, subtitle, 11.5f, Theme.dim(), false));
+            TextView sub = Ui.text(a, subtitle, 11.5f, Theme.dim(), false);
+            sub.setPadding(0, Ui.dp(a, 2), 0, 0);
+            copy.addView(sub);
         }
         box.addView(copy);
         ImageView arrow = Ui.icon(a, R.drawable.ic_next, 16, Theme.faint());
@@ -429,15 +489,20 @@ public final class Widgets {
     public static LinearLayout bigAction(MainActivity a, int icon, String title, String subtitle,
                                          Runnable click) {
         LinearLayout box = Ui.row(a);
-        box.setBackground(Ui.strokeBg(a, Theme.surface(), 16, Theme.border(), 1));
-        box.setPadding(Ui.dp(a, 15), Ui.dp(a, 14), Ui.dp(a, 15), Ui.dp(a, 14));
-        box.addView(circleIcon(a, icon, 40, Theme.accentSoft(20), Theme.accent()));
+        android.graphics.drawable.GradientDrawable bg =
+                Ui.gradient(a, Theme.surface2(), Theme.surface(), 18);
+        bg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
+        box.setBackground(bg);
+        box.setPadding(Ui.dp(a, 16), Ui.dp(a, 15), Ui.dp(a, 16), Ui.dp(a, 15));
+        box.addView(circleIcon(a, icon, 42, Theme.accentSoft(24), Theme.accent()));
         LinearLayout copy = Ui.column(a);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        clp.leftMargin = Ui.dp(a, 12);
+        clp.leftMargin = Ui.dp(a, 13);
         copy.setLayoutParams(clp);
-        copy.addView(Ui.text(a, title, 14, Theme.text(), true));
-        copy.addView(Ui.text(a, subtitle, 11.5f, Theme.dim(), false));
+        copy.addView(Ui.text(a, title, 14.5f, Theme.text(), true));
+        TextView sub = Ui.text(a, subtitle, 11.5f, Theme.dim(), false);
+        sub.setPadding(0, Ui.dp(a, 2), 0, 0);
+        copy.addView(sub);
         box.addView(copy);
         box.setOnClickListener(v -> click.run());
         Ui.ripple(box, 0x1AFFFFFF);

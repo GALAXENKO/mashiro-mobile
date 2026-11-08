@@ -683,78 +683,199 @@ public class YandexApi {
 
     // --------------------------------------------------------------- lyrics
 
+    /** Looks for lyrics in several open catalogues and returns the best match. */
     public Models.Lyrics lyrics(Models.Track track) {
-        Models.Lyrics lyrics = new Models.Lyrics();
-        lyrics.trackId = track.id;
-        if (track.artists.isEmpty()) return lyrics;
-        String artist = track.artists.get(0).name;
+        Models.Lyrics empty = new Models.Lyrics();
+        if (track == null) return empty;
+        empty.trackId = track.id;
+
+        String artist = track.artists.isEmpty() ? "" : track.artists.get(0).name;
+        String title = cleanTitle(track.title);
         long duration = track.durationMs / 1000L;
+
+        List<Models.Lyrics> found = new ArrayList<>();
+
+        // LRCLIB — community catalogue, usually timed.
+        Models.Lyrics lrc = fromLrclib(artist, title, duration);
+        if (lrc != null) found.add(lrc);
+
+        // Netease Cloud Music — plenty of Russian tracks with timed LRC.
+        Models.Lyrics netease = fromNetease(artist, title, duration);
+        if (netease != null) found.add(netease);
+
+        // Yandex' own supplement — official, but usually plain text.
+        Models.Lyrics yandex = fromYandex(track);
+        if (yandex != null) found.add(yandex);
+
+        // lyrics.ovh — plain text fallback.
+        Models.Lyrics ovh = fromLyricsOvh(artist, title);
+        if (ovh != null) found.add(ovh);
+
+        Models.Lyrics best = null;
+        for (Models.Lyrics candidate : found) {
+            if (best == null) {
+                best = candidate;
+            } else if (!best.synced && candidate.synced) {
+                best = candidate;
+            }
+        }
+        return best == null ? empty : best;
+    }
+
+    private Models.Lyrics fromLrclib(String artist, String title, long duration) {
+        if (title.isEmpty()) return null;
         try {
             String url = "https://lrclib.net/api/get?artist_name=" + enc(artist)
-                    + "&track_name=" + enc(track.title)
+                    + "&track_name=" + enc(title)
                     + "&duration=" + duration;
-            JSONObject o = lrclib(url);
-            if (o == null) {
-                String search = "https://lrclib.net/api/search?artist_name=" + enc(artist)
-                        + "&track_name=" + enc(track.title);
-                JSONArray list = lrclibArray(search);
-                if (list != null && list.length() > 0) {
-                    for (int i = 0; i < list.length(); i++) {
-                        JSONObject item = list.optJSONObject(i);
-                        if (item != null && !item.optString("syncedLyrics", "").trim().isEmpty()) {
-                            o = item;
-                            break;
-                        }
-                    }
-                    if (o == null) o = list.optJSONObject(0);
+            JSONObject o = fetchObject(url, null);
+            if (o == null && !artist.isEmpty()) {
+                o = pickLrclib(fetchArray("https://lrclib.net/api/search?artist_name=" + enc(artist)
+                        + "&track_name=" + enc(title), null), duration);
+                if (o == null) {
+                    o = pickLrclib(fetchArray("https://lrclib.net/api/search?q="
+                            + enc(artist + " " + title), null), duration);
                 }
             }
-            if (o != null) {
-                String text = o.optString("syncedLyrics", "");
-                if (text.trim().isEmpty()) text = o.optString("plainLyrics", "");
-                if (!text.trim().isEmpty()) {
-                    parseLrc(lyrics, text);
-                    lyrics.source = "lrclib";
-                    return lyrics;
-                }
+            if (o == null) return null;
+            String text = o.optString("syncedLyrics", "");
+            if (text.trim().isEmpty()) text = o.optString("plainLyrics", "");
+            if (text.trim().isEmpty()) return null;
+            Models.Lyrics lyrics = new Models.Lyrics();
+            parseLrc(lyrics, text);
+            if (lyrics.lines.isEmpty()) return null;
+            lyrics.source = "LRCLIB";
+            return lyrics;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private JSONObject pickLrclib(JSONArray list, long duration) {
+        if (list == null || list.length() == 0) return null;
+        JSONObject fallback = null;
+        for (int i = 0; i < list.length(); i++) {
+            JSONObject item = list.optJSONObject(i);
+            if (item == null) continue;
+            boolean synced = !item.optString("syncedLyrics", "").trim().isEmpty();
+            long d = Math.round(item.optDouble("duration", 0));
+            boolean durationOk = duration <= 0 || d <= 0 || Math.abs(d - duration) <= 6;
+            if (synced && durationOk) return item;
+            if (fallback == null) fallback = item;
+        }
+        return fallback;
+    }
+
+    private Models.Lyrics fromNetease(String artist, String title, long duration) {
+        if (title.isEmpty()) return null;
+        try {
+            String query = (artist + " " + title).trim();
+            JSONObject search = fetchObject("https://music.163.com/api/search/get/web?s=" + enc(query)
+                    + "&type=1&offset=0&total=true&limit=8", "https://music.163.com/");
+            if (search == null) return null;
+            JSONObject result = search.optJSONObject("result");
+            JSONArray songs = result == null ? null : result.optJSONArray("songs");
+            if (songs == null || songs.length() == 0) return null;
+            long bestId = 0;
+            for (int i = 0; i < songs.length(); i++) {
+                JSONObject song = songs.optJSONObject(i);
+                if (song == null) continue;
+                long id = song.optLong("id", 0);
+                if (id <= 0) continue;
+                long d = song.optLong("duration", 0) / 1000L;
+                if (duration > 0 && d > 0 && Math.abs(d - duration) > 10) continue;
+                bestId = id;
+                break;
             }
-        } catch (Exception ignored) {}
+            if (bestId == 0) {
+                JSONObject first = songs.optJSONObject(0);
+                bestId = first == null ? 0 : first.optLong("id", 0);
+            }
+            if (bestId == 0) return null;
+            JSONObject lyric = fetchObject("https://music.163.com/api/song/lyric?id=" + bestId
+                    + "&lv=-1&kv=-1&tv=-1", "https://music.163.com/");
+            if (lyric == null) return null;
+            JSONObject lrc = lyric.optJSONObject("lrc");
+            String text = lrc == null ? "" : lrc.optString("lyric", "");
+            if (text.trim().isEmpty()) {
+                JSONObject tlyric = lyric.optJSONObject("tlyric");
+                text = tlyric == null ? "" : tlyric.optString("lyric", "");
+            }
+            if (text.trim().isEmpty()) return null;
+            Models.Lyrics lyrics = new Models.Lyrics();
+            parseLrc(lyrics, text);
+            if (lyrics.lines.isEmpty()) return null;
+            lyrics.source = "Netease";
+            return lyrics;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Models.Lyrics fromYandex(Models.Track track) {
+        if (!hasToken()) return null;
         try {
             JSONObject r = getObject("/tracks/" + track.id + "/supplement");
             JSONObject node = r.optJSONObject("lyrics");
-            if (node != null) {
-                String text = node.optString("fullLyrics", "");
-                if (text.isEmpty()) text = node.optString("lyrics", "");
-                if (text.isEmpty()) text = node.optString("text", "");
-                if (!text.trim().isEmpty()) {
-                    parseLrc(lyrics, text);
-                    lyrics.source = "yandex";
-                    String authors = node.optString("textAuthor", "");
-                    for (String w : authors.split(",")) {
-                        if (!w.trim().isEmpty()) lyrics.writers.add(w.trim());
-                    }
-                }
+            if (node == null) return null;
+            String text = node.optString("fullLyrics", "");
+            if (text.isEmpty()) text = node.optString("lyrics", "");
+            if (text.isEmpty()) text = node.optString("text", "");
+            if (text.trim().isEmpty()) return null;
+            Models.Lyrics lyrics = new Models.Lyrics();
+            parseLrc(lyrics, text);
+            if (lyrics.lines.isEmpty()) return null;
+            lyrics.source = "Яндекс";
+            String authors = node.optString("textAuthor", "");
+            for (String w : authors.split(",")) {
+                if (!w.trim().isEmpty()) lyrics.writers.add(w.trim());
             }
-        } catch (Exception ignored) {}
-        return lyrics;
-    }
-
-    private JSONObject lrclib(String url) {
-        try {
-            String text = httpGetText(url, false);
-            return new JSONObject(text);
+            return lyrics;
         } catch (Exception e) {
             return null;
         }
     }
 
-    private JSONArray lrclibArray(String url) {
+    private Models.Lyrics fromLyricsOvh(String artist, String title) {
+        if (artist.isEmpty() || title.isEmpty()) return null;
         try {
-            String text = httpGetText(url, false);
-            return new JSONArray(text);
+            JSONObject o = fetchObject("https://api.lyrics.ovh/v1/" + enc(artist) + "/" + enc(title), null);
+            if (o == null) return null;
+            String text = o.optString("lyrics", "");
+            if (text.trim().isEmpty()) return null;
+            Models.Lyrics lyrics = new Models.Lyrics();
+            parseLrc(lyrics, text);
+            if (lyrics.lines.isEmpty()) return null;
+            lyrics.source = "lyrics.ovh";
+            return lyrics;
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private JSONObject fetchObject(String url, String referer) {
+        try {
+            return new JSONObject(httpGetText(url, false, referer));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private JSONArray fetchArray(String url, String referer) {
+        try {
+            return new JSONArray(httpGetText(url, false, referer));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Strips featuring credits, remaster notes and brackets so catalogues match better. */
+    private static String cleanTitle(String raw) {
+        if (raw == null) return "";
+        String t = raw.replaceAll("\\([^)]*\\)", " ").replaceAll("\\[[^\\]]*\\]", " ");
+        t = t.replaceAll("(?i)\\s*-\\s*(remaster(ed)?|live|acoustic|radio edit|single version|version).*$", " ");
+        t = t.replaceAll("(?i)\\s+(feat\\.?|ft\\.?|при уч\\.?)\\s+.*$", " ");
+        return t.replaceAll("\\s+", " ").trim();
     }
 
     private void parseLrc(Models.Lyrics lyrics, String text) {
@@ -858,7 +979,7 @@ public class YandexApi {
             c.setRequestProperty("Accept", "application/json");
             c.setRequestProperty("Accept-Language", "ru");
             c.setRequestProperty("Accept-Encoding", "gzip");
-            c.setRequestProperty("User-Agent", "Mashiro/1.0 (Android)");
+            c.setRequestProperty("User-Agent", "Mashiro/1.2 (Android)");
             c.setRequestProperty("X-Yandex-Music-Client", MUSIC_CLIENT);
             if (useAuth && hasToken()) c.setRequestProperty("Authorization", "OAuth " + token);
             if (body != null) {
@@ -898,6 +1019,10 @@ public class YandexApi {
     }
 
     private String httpGetText(String url, boolean auth) throws ApiException {
+        return httpGetText(url, auth, null);
+    }
+
+    private String httpGetText(String url, boolean auth, String referer) throws ApiException {
         HttpURLConnection c = null;
         try {
             c = (HttpURLConnection) new URL(url).openConnection();
@@ -906,8 +1031,9 @@ public class YandexApi {
             c.setRequestProperty("Accept", "application/json, text/plain, */*");
             c.setRequestProperty("Accept-Encoding", "gzip");
             c.setRequestProperty("Accept-Language", "ru");
-            c.setRequestProperty("User-Agent", "Mashiro/1.0 (Android)");
+            c.setRequestProperty("User-Agent", "Mashiro/1.2 (Android)");
             c.setRequestProperty("X-Yandex-Music-Client", MUSIC_CLIENT);
+            if (referer != null && !referer.isEmpty()) c.setRequestProperty("Referer", referer);
             if (auth && hasToken()) c.setRequestProperty("Authorization", "OAuth " + token);
             int code = c.getResponseCode();
             if (code < 200 || code >= 300) {

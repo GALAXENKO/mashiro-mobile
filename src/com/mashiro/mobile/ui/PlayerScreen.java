@@ -3,6 +3,7 @@ package com.mashiro.mobile.ui;
 import android.graphics.Color;
 import android.graphics.Shader;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,19 +51,21 @@ public class PlayerScreen {
         this.a = a;
         root = Ui.column(a);
         root.setBackgroundColor(Theme.bg());
-        root.setPadding(Ui.dp(a, 18), 0, Ui.dp(a, 18), Ui.dp(a, 10));
+        root.setPadding(Ui.dp(a, 20), 0, Ui.dp(a, 20), Ui.dp(a, 8));
 
         LinearLayout header = Ui.row(a);
-        header.setPadding(0, Ui.dp(a, 8), 0, Ui.dp(a, 6));
-        header.addView(Ui.iconButton(a, R.drawable.ic_arrow_down, 42, 24, Theme.text(), v -> hide()));
+        header.setPadding(0, Ui.dp(a, 10), 0, Ui.dp(a, 8));
+        header.addView(Ui.iconButton(a, R.drawable.ic_arrow_down, 42, 22, Theme.text(), v -> hide()));
         LinearLayout hcopy = Ui.column(a);
         hcopy.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         hcopy.setGravity(Gravity.CENTER);
-        TextView label = Ui.text(a, "СЕЙЧАС ИГРАЕТ", 9.5f, Theme.dim(), true);
-        label.setLetterSpacing(0.18f);
+        TextView label = Ui.overline(a, "Сейчас играет");
+        label.setTextColor(Theme.dim());
+        label.setGravity(Gravity.CENTER);
         hcopy.addView(label);
-        source = Ui.text(a, "Mashiro", 10, Theme.faint(), false);
+        source = Ui.text(a, "Mashiro", 10.5f, Theme.faint(), false);
         source.setGravity(Gravity.CENTER);
+        source.setPadding(0, Ui.dp(a, 3), 0, 0);
         hcopy.addView(source);
         header.addView(hcopy);
         header.addView(Ui.iconButton(a, R.drawable.ic_queue, 42, 21, Theme.text(), v -> a.openQueue()));
@@ -87,11 +90,11 @@ public class PlayerScreen {
         coverBox.addView(halo, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        int size = Math.min(Ui.screenWidth(a) - Ui.dp(a, 54), Ui.dp(a, 380));
+        int size = Math.min(Ui.screenWidth(a) - Ui.dp(a, 58), Ui.dp(a, 380));
         cover = new ImageLoader.RoundedImageView(a);
-        cover.setRadiusDp(22);
-        cover.setBackground(Ui.bg(a, Theme.surface2(), 22));
-        cover.setElevation(Ui.dp(a, 16));
+        cover.setRadiusDp(26);
+        cover.setBackground(Ui.bg(a, Theme.surface2(), 26));
+        cover.setElevation(Ui.dp(a, 18));
         FrameLayout.LayoutParams clp = new FrameLayout.LayoutParams(size, size);
         clp.gravity = Gravity.CENTER;
         coverBox.addView(cover, clp);
@@ -108,16 +111,16 @@ public class PlayerScreen {
         });
 
         LinearLayout info = Ui.column(a);
-        info.setPadding(0, Ui.dp(a, 22), 0, 0);
-        title = Ui.text(a, "", 24, Theme.text(), true);
+        info.setPadding(0, Ui.dp(a, 26), 0, 0);
+        title = Ui.text(a, "", 25, Theme.text(), true);
         title.setSingleLine(true);
         title.setEllipsize(android.text.TextUtils.TruncateAt.MARQUEE);
         title.setSelected(true);
         info.addView(title);
-        artist = Ui.text(a, "", 13.5f, Theme.dim(), false);
+        artist = Ui.text(a, "", 14, Theme.dim(), false);
         artist.setSingleLine(true);
         artist.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        artist.setPadding(0, Ui.dp(a, 5), 0, 0);
+        artist.setPadding(0, Ui.dp(a, 7), 0, 0);
         artist.setOnClickListener(v -> {
             Models.Track t = Playback.get().current();
             if (t != null && !t.artists.isEmpty() && !t.artists.get(0).id.isEmpty()) {
@@ -125,20 +128,21 @@ public class PlayerScreen {
             }
         });
         info.addView(artist);
-        album = Ui.text(a, "", 11.5f, Theme.faint(), false);
+        album = Ui.text(a, "", 11, Theme.faint(), false);
         album.setSingleLine(true);
         album.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        album.setPadding(0, Ui.dp(a, 3), 0, 0);
+        album.setPadding(0, Ui.dp(a, 5), 0, 0);
+        album.setLetterSpacing(0.02f);
         info.addView(album);
         error = Ui.text(a, "", 11.5f, Theme.danger(), false);
         error.setVisibility(View.GONE);
-        error.setPadding(0, Ui.dp(a, 4), 0, 0);
+        error.setPadding(0, Ui.dp(a, 6), 0, 0);
         info.addView(error);
         root.addView(info);
 
         seek = new SeekBar(a);
         seek.setMax(1000);
-        seek.setPadding(0, Ui.dp(a, 14), 0, 0);
+        seek.setPadding(0, Ui.dp(a, 20), 0, 0);
         if (android.os.Build.VERSION.SDK_INT >= 21) {
             seek.setProgressTintList(android.content.res.ColorStateList.valueOf(Theme.accent()));
             seek.setThumbTintList(android.content.res.ColorStateList.valueOf(Theme.accent()));
@@ -164,58 +168,60 @@ public class PlayerScreen {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         LinearLayout times = Ui.row(a);
-        elapsed = Ui.text(a, "0:00", 11, Theme.faint(), false);
-        total = Ui.text(a, "0:00", 11, Theme.faint(), false);
+        elapsed = Ui.text(a, "0:00", 11, Theme.faint(), true);
+        total = Ui.text(a, "0:00", 11, Theme.faint(), true);
         total.setGravity(Gravity.END);
+        times.setPadding(0, Ui.dp(a, 2), 0, 0);
         times.addView(elapsed, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         times.addView(total);
         root.addView(times);
 
         LinearLayout controls = Ui.row(a);
-        controls.setPadding(0, Ui.dp(a, 14), 0, Ui.dp(a, 6));
+        controls.setPadding(0, Ui.dp(a, 16), 0, Ui.dp(a, 4));
         controls.setGravity(Gravity.CENTER);
-        shuffle = Ui.icon(a, R.drawable.ic_shuffle, 21, Theme.faint());
+        shuffle = Ui.icon(a, R.drawable.ic_shuffle, 20, Theme.faint());
         shuffle.setOnClickListener(v -> {
             Playback.get().toggleShuffle();
             update();
         });
-        repeat = Ui.icon(a, R.drawable.ic_repeat, 21, Theme.faint());
+        repeat = Ui.icon(a, R.drawable.ic_repeat, 20, Theme.faint());
         repeat.setOnClickListener(v -> {
             Playback.get().repeat = (Playback.get().repeat + 1) % 3;
             Playback.get().setRepeat(Playback.get().repeat);
             update();
         });
-        ImageView prev = Ui.icon(a, R.drawable.ic_prev, 32, Theme.text());
+        ImageView prev = Ui.icon(a, R.drawable.ic_prev, 34, Theme.text());
         prev.setOnClickListener(v -> Playback.get().prev());
         FrameLayout playBox = new FrameLayout(a);
-        playBox.setBackground(Ui.bg(a, Theme.accent(), 36));
-        playBox.setElevation(Ui.dp(a, 8));
+        GradientDrawable playBg = Ui.gradient(a, Theme.accent(), Theme.accent(), 38);
+        playBox.setBackground(playBg);
+        playBox.setElevation(Ui.dp(a, 10));
         play = new ImageView(a);
         play.setImageResource(R.drawable.ic_play);
         play.setColorFilter(Theme.accentText());
-        FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(Ui.dp(a, 32), Ui.dp(a, 32));
+        FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(Ui.dp(a, 34), Ui.dp(a, 34));
         plp.gravity = Gravity.CENTER;
         playBox.addView(play, plp);
         playBox.setOnClickListener(v -> {
             Playback.get().toggle();
             play.postDelayed(this::update, 120);
         });
-        ImageView next = Ui.icon(a, R.drawable.ic_next, 32, Theme.text());
+        ImageView next = Ui.icon(a, R.drawable.ic_next, 34, Theme.text());
         next.setOnClickListener(v -> Playback.get().next(true));
 
-        controls.addView(wrap(shuffle, 48));
-        controls.addView(wrap(prev, 56));
+        controls.addView(wrap(shuffle, 46));
+        controls.addView(wrap(prev, 58));
         controls.addView(playBox);
-        LinearLayout.LayoutParams pb = new LinearLayout.LayoutParams(Ui.dp(a, 72), Ui.dp(a, 72));
-        pb.leftMargin = Ui.dp(a, 18);
-        pb.rightMargin = Ui.dp(a, 18);
+        LinearLayout.LayoutParams pb = new LinearLayout.LayoutParams(Ui.dp(a, 74), Ui.dp(a, 74));
+        pb.leftMargin = Ui.dp(a, 16);
+        pb.rightMargin = Ui.dp(a, 16);
         playBox.setLayoutParams(pb);
-        controls.addView(wrap(next, 56));
-        controls.addView(wrap(repeat, 48));
+        controls.addView(wrap(next, 58));
+        controls.addView(wrap(repeat, 46));
         root.addView(controls);
 
         LinearLayout actions = Ui.row(a);
-        actions.setPadding(0, Ui.dp(a, 10), 0, 0);
+        actions.setPadding(0, Ui.dp(a, 14), 0, 0);
         like = buildAction(actions, R.drawable.ic_heart, "Нравится", v -> toggleLike());
         buildAction(actions, R.drawable.ic_lyrics, "Текст", v -> openLyrics());
         download = buildAction(actions, R.drawable.ic_download, "Скачать", v -> download());
@@ -238,13 +244,18 @@ public class PlayerScreen {
         LinearLayout item = Ui.column(a);
         item.setGravity(Gravity.CENTER);
         item.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        ImageView iconView = Ui.icon(a, icon, 23, Theme.dim());
-        LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(Ui.dp(a, 23), Ui.dp(a, 23));
-        ilp.gravity = Gravity.CENTER_HORIZONTAL;
-        item.addView(iconView, ilp);
+        FrameLayout box = new FrameLayout(a);
+        box.setBackground(Ui.bg(a, Theme.surface2(), 20));
+        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(Ui.dp(a, 40), Ui.dp(a, 40));
+        blp.gravity = Gravity.CENTER_HORIZONTAL;
+        item.addView(box, blp);
+        ImageView iconView = Ui.icon(a, icon, 20, Theme.dim());
+        FrameLayout.LayoutParams ilp = new FrameLayout.LayoutParams(Ui.dp(a, 20), Ui.dp(a, 20));
+        ilp.gravity = Gravity.CENTER;
+        box.addView(iconView, ilp);
         TextView label = Ui.text(a, text, 10, Theme.faint(), false);
         label.setGravity(Gravity.CENTER);
-        label.setPadding(0, Ui.dp(a, 5), 0, 0);
+        label.setPadding(0, Ui.dp(a, 7), 0, 0);
         item.addView(label);
         item.setOnClickListener(click);
         parent.addView(item);

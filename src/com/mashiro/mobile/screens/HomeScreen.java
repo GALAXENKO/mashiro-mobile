@@ -46,13 +46,14 @@ public class HomeScreen extends Screen {
         ScrollView scroll = page.scroll;
 
         LinearLayout head = Ui.row(a);
-        head.setPadding(0, Ui.dp(a, 12), 0, Ui.dp(a, 6));
+        head.setPadding(0, Ui.dp(a, 16), 0, Ui.dp(a, 6));
         LinearLayout copy = Ui.column(a);
         copy.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        greeting = Ui.text(a, "", 11.5f, Theme.dim(), false);
+        greeting = Ui.overline(a, "");
         copy.addView(greeting);
         TextView name = Ui.title(a, Store.name(), 27);
         name.setSingleLine(true);
+        name.setPadding(0, Ui.dp(a, 3), 0, 0);
         nameView = name;
         copy.addView(name);
         head.addView(copy);
@@ -105,46 +106,46 @@ public class HomeScreen extends Screen {
 
     private View quickCard(int icon, String text, Runnable click) {
         LinearLayout box = Ui.column(a);
-        box.setBackground(Ui.strokeBg(a, Theme.surface(), 15, Theme.border(), 1));
-        box.setPadding(Ui.dp(a, 12), Ui.dp(a, 12), Ui.dp(a, 10), Ui.dp(a, 12));
-        box.addView(Ui.icon(a, icon, 20, Theme.text()));
+        box.setBackground(Ui.strokeBg(a, Theme.surface(), 16, Theme.border(), 1));
+        box.setPadding(Ui.dp(a, 12), Ui.dp(a, 13), Ui.dp(a, 10), Ui.dp(a, 13));
+        box.addView(Widgets.circleIcon(a, icon, 32, Theme.surface2(), Theme.text()));
         TextView label = Ui.text(a, text, 11, Theme.dim(), true);
-        label.setPadding(0, Ui.dp(a, 10), 0, 0);
+        label.setPadding(0, Ui.dp(a, 11), 0, 0);
         label.setSingleLine(true);
         box.addView(label);
         box.setOnClickListener(v -> click.run());
-        Ui.ripple(box, 0x1AFFFFFF);
+        Ui.ripple(box, Theme.light() ? 0x12101014 : 0x18FFFFFF);
         return box;
     }
 
     private View hero() {
         LinearLayout card = Ui.row(a);
         GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                new int[]{Theme.surface2(), Theme.accentSoft(28)});
-        bg.setCornerRadius(Ui.dp(a, 20));
+                new int[]{Theme.accentSoft(54), Theme.surface2()});
+        bg.setCornerRadius(Ui.dp(a, 24));
+        bg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
         card.setBackground(bg);
-        card.setPadding(Ui.dp(a, 18), Ui.dp(a, 18), Ui.dp(a, 16), Ui.dp(a, 18));
+        card.setPadding(Ui.dp(a, 20), Ui.dp(a, 20), Ui.dp(a, 16), Ui.dp(a, 20));
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        clp.topMargin = Ui.dp(a, 14);
+        clp.topMargin = Ui.dp(a, 16);
         card.setLayoutParams(clp);
         card.setOnClickListener(v -> startWave());
 
         LinearLayout copy = Ui.column(a);
         copy.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView label = Ui.text(a, "ПЕРСОНАЛЬНАЯ СТАНЦИЯ", 9, Theme.dim(), true);
-        label.setLetterSpacing(0.12f);
-        copy.addView(label);
-        TextView title = Ui.title(a, "Моя волна", 24);
-        title.setPadding(0, Ui.dp(a, 4), 0, Ui.dp(a, 2));
+        copy.addView(Ui.overline(a, "Персональная станция"));
+        TextView title = Ui.title(a, "Моя волна", 25);
+        title.setPadding(0, Ui.dp(a, 6), 0, Ui.dp(a, 2));
         copy.addView(title);
-        TextView sub = Ui.text(a, "Бесконечный поток под ваш вкус", 11.5f, Theme.dim(), false);
+        TextView sub = Ui.text(a, "Бесконечный поток под ваш вкус", 12, Theme.dim(), false);
         copy.addView(sub);
         LinearLayout buttons = Ui.row(a);
-        buttons.setPadding(0, Ui.dp(a, 14), 0, 0);
+        buttons.setGravity(Gravity.CENTER_VERTICAL);
+        buttons.setPadding(0, Ui.dp(a, 16), 0, 0);
         TextView play = Ui.text(a, "Слушать", 13, Theme.accentText(), true);
         play.setBackground(Ui.bg(a, Theme.accent(), 30));
-        play.setPadding(Ui.dp(a, 18), Ui.dp(a, 9), Ui.dp(a, 18), Ui.dp(a, 9));
+        play.setPadding(Ui.dp(a, 20), Ui.dp(a, 10), Ui.dp(a, 20), Ui.dp(a, 10));
         buttons.addView(play);
         TextView hint = Ui.text(a, "лайк · дизлайк · далее", 10.5f, Theme.faint(), false);
         hint.setPadding(Ui.dp(a, 12), 0, 0, 0);
@@ -154,9 +155,9 @@ public class HomeScreen extends Screen {
 
         LinearLayout mark = Ui.row(a);
         mark.setGravity(Gravity.CENTER);
-        mark.setBackground(Ui.bg(a, Theme.accentSoft(22), 40));
-        mark.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 84), Ui.dp(a, 84)));
-        mark.addView(Ui.icon(a, R.drawable.ic_wave, 38, Theme.accent()));
+        mark.setBackground(Ui.strokeBg(a, Theme.accentSoft(26), 40, Theme.hairline(), 1));
+        mark.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 80), Ui.dp(a, 80)));
+        mark.addView(Ui.icon(a, R.drawable.ic_wave, 34, Theme.accent()));
         card.addView(mark);
         return card;
     }
@@ -182,7 +183,7 @@ public class HomeScreen extends Screen {
         else if (hour < 12) text = "Доброе утро";
         else if (hour < 18) text = "Добрый день";
         else text = "Добрый вечер";
-        greeting.setText(text);
+        greeting.setText(text.toUpperCase(java.util.Locale.getDefault()));
     }
 
     @Override
@@ -246,14 +247,14 @@ public class HomeScreen extends Screen {
     private View createCard() {
         LinearLayout card = Ui.column(a);
         card.setGravity(Gravity.CENTER);
-        card.setBackground(Ui.strokeBg(a, Theme.surface(), 12, Theme.border(), 1));
+        card.setBackground(Ui.strokeBg(a, Theme.surface(), 16, Theme.border(), 1));
         LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(
                 Ui.dp(a, 142), Ui.dp(a, 142));
         card.setLayoutParams(cardLp);
-        View circle = Widgets.circleIcon(a, R.drawable.ic_plus, 42, Theme.surface2(), Theme.accent());
+        View circle = Widgets.circleIcon(a, R.drawable.ic_plus, 44, Theme.surface2(), Theme.accent());
         card.addView(circle);
         TextView label = Ui.text(a, "Новый плейлист", 11.5f, Theme.dim(), true);
-        label.setPadding(0, Ui.dp(a, 10), 0, 0);
+        label.setPadding(0, Ui.dp(a, 11), 0, 0);
         card.addView(label);
         card.setOnClickListener(v -> Ui.input(a, "Новый плейлист", "", "Название", "Создать", false, value -> {
             if (value.isEmpty()) return;

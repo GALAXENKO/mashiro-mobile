@@ -48,14 +48,17 @@ public class StatsScreen extends Screen {
         List<Store.StatItem> artists = Store.topArtists();
 
         LinearLayout summary = Ui.row(a);
-        summary.setBackground(Ui.strokeBg(a, Theme.surface(), 18, Theme.border(), 1));
-        summary.setPadding(Ui.dp(a, 18), Ui.dp(a, 18), Ui.dp(a, 18), Ui.dp(a, 18));
+        android.graphics.drawable.GradientDrawable sumBg =
+                Ui.gradient(a, Theme.accentSoft(26), Theme.surface(), 20);
+        sumBg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
+        summary.setBackground(sumBg);
+        summary.setPadding(Ui.dp(a, 18), Ui.dp(a, 20), Ui.dp(a, 18), Ui.dp(a, 20));
         LinearLayout copy = Ui.column(a);
         copy.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        copy.addView(Ui.text(a, "ВСЕГО ПРОСЛУШИВАНИЙ", 9.5f, Theme.dim(), true));
+        copy.addView(Ui.overline(a, "Всего прослушиваний"));
         TextView number = Ui.title(a, String.valueOf(total), 40);
-        number.setPadding(0, Ui.dp(a, 4), 0, 0);
+        number.setPadding(0, Ui.dp(a, 6), 0, Ui.dp(a, 2));
         copy.addView(number);
         TextView sub = Ui.text(a, tracks.size() + " "
                 + Ui.plural(tracks.size(), "трек", "трека", "треков") + " · "
@@ -63,8 +66,8 @@ public class StatsScreen extends Screen {
                 11.5f, Theme.dim(), false);
         copy.addView(sub);
         summary.addView(copy);
-        summary.addView(Widgets.circleIcon(a, R.drawable.ic_headphones, 56,
-                Theme.accentSoft(20), Theme.accent()));
+        summary.addView(Widgets.circleIcon(a, R.drawable.ic_headphones, 58,
+                Theme.accentSoft(26), Theme.accent()));
         content.addView(summary);
 
         if (total == 0) {
@@ -85,34 +88,36 @@ public class StatsScreen extends Screen {
             for (int i = 0; i < artistLimit; i++) {
                 Store.StatItem item = artists.get(i);
                 LinearLayout row = Ui.row(a);
-                row.setPadding(Ui.dp(a, 4), Ui.dp(a, 7), Ui.dp(a, 4), Ui.dp(a, 7));
+                row.setPadding(Ui.dp(a, 4), Ui.dp(a, 8), Ui.dp(a, 4), Ui.dp(a, 8));
                 TextView num = Ui.text(a, String.valueOf(i + 1), 12.5f, Theme.faint(), true);
                 num.setGravity(Gravity.CENTER);
                 num.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 28),
                         ViewGroup.LayoutParams.WRAP_CONTENT));
                 row.addView(num);
-                row.addView(Widgets.circleIcon(a, R.drawable.ic_person, 40,
+                row.addView(Widgets.circleIcon(a, R.drawable.ic_person, 42,
                         Theme.surface2(), Theme.dim()));
                 LinearLayout copyRow = Ui.column(a);
                 LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                         ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-                clp.leftMargin = Ui.dp(a, 12);
+                clp.leftMargin = Ui.dp(a, 13);
                 copyRow.setLayoutParams(clp);
                 TextView name = Ui.text(a, item.title, 14, Theme.text(), true);
                 name.setSingleLine(true);
+                name.setEllipsize(android.text.TextUtils.TruncateAt.END);
                 copyRow.addView(name);
-                copyRow.addView(Ui.text(a, item.count + " "
+                TextView plays = Ui.text(a, item.count + " "
                         + Ui.plural(item.count, "прослушивание", "прослушивания", "прослушиваний"),
-                        11, Theme.dim(), false));
+                        11, Theme.dim(), false);
+                plays.setPadding(0, Ui.dp(a, 2), 0, 0);
+                copyRow.addView(plays);
                 row.addView(copyRow);
                 content.addView(row);
             }
         }
 
-        TextView hint = Ui.text(a, "Статистика хранится только на этом устройстве", 10.5f,
-                Theme.faint(), false);
+        TextView hint = Ui.overline(a, "Только на этом устройстве");
         hint.setGravity(Gravity.CENTER);
-        hint.setPadding(0, Ui.dp(a, 22), 0, 0);
+        hint.setPadding(0, Ui.dp(a, 26), 0, 0);
         content.addView(hint);
 
         TextView reset = Ui.secondaryButton(a, "Сбросить статистику", v ->
@@ -124,24 +129,24 @@ public class StatsScreen extends Screen {
                         }).show());
         LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        rlp.topMargin = Ui.dp(a, 14);
+        rlp.topMargin = Ui.dp(a, 18);
         reset.setLayoutParams(rlp);
         content.addView(reset);
     }
 
     private View statRow(Store.StatItem item, int position) {
         LinearLayout row = Ui.row(a);
-        row.setPadding(Ui.dp(a, 4), Ui.dp(a, 6), Ui.dp(a, 4), Ui.dp(a, 6));
+        row.setPadding(Ui.dp(a, 4), Ui.dp(a, 7), Ui.dp(a, 4), Ui.dp(a, 7));
         TextView num = Ui.text(a, String.valueOf(position), 12.5f, Theme.faint(), true);
         num.setGravity(Gravity.CENTER);
-        num.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 26),
+        num.setLayoutParams(new LinearLayout.LayoutParams(Ui.dp(a, 28),
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         row.addView(num);
-        row.addView(Widgets.cover(a, item.cover, 44, 8));
+        row.addView(Widgets.cover(a, item.cover, 46, 10));
         LinearLayout copy = Ui.column(a);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        clp.leftMargin = Ui.dp(a, 11);
+        clp.leftMargin = Ui.dp(a, 13);
         copy.setLayoutParams(clp);
         TextView title = Ui.text(a, item.title, 14, Theme.text(), true);
         title.setSingleLine(true);
@@ -150,6 +155,7 @@ public class StatsScreen extends Screen {
         TextView artist = Ui.text(a, item.artist, 11.5f, Theme.dim(), false);
         artist.setSingleLine(true);
         artist.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        artist.setPadding(0, Ui.dp(a, 2), 0, 0);
         copy.addView(artist);
         row.addView(copy);
         TextView count = Ui.text(a, "×" + item.count, 12, Theme.accent(), true);

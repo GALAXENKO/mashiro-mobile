@@ -138,12 +138,12 @@ public class MainActivity extends Activity {
 
         mini = buildMini();
         shell.addView(mini, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 62)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 70)));
         mini.setVisibility(View.GONE);
 
         nav = buildNav();
         shell.addView(nav, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 58)));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 60)));
 
         overlay = new FrameLayout(this);
         overlay.setPadding(0, Ui.statusBar(this), 0, Ui.navBar(this));
@@ -156,12 +156,12 @@ public class MainActivity extends Activity {
 
     private LinearLayout buildNav() {
         LinearLayout bar = Ui.column(this);
-        bar.setBackgroundColor(Theme.surface());
+        bar.setBackgroundColor(Theme.bg());
         View top = new View(this);
-        top.setBackgroundColor(Theme.border());
+        top.setBackgroundColor(Theme.hairline());
         bar.addView(top, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
         navItems = Ui.row(this);
-        navItems.setPadding(Ui.dp(this, 6), 0, Ui.dp(this, 6), 0);
+        navItems.setPadding(Ui.dp(this, 8), Ui.dp(this, 6), Ui.dp(this, 8), Ui.dp(this, 4));
         bar.addView(navItems, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         navItems.addView(navItem(1, R.drawable.ic_home, "Главная"));
@@ -177,38 +177,52 @@ public class MainActivity extends Activity {
         item.setTag("nav" + id);
         item.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.MATCH_PARENT, 1f));
-        ImageView icon = Ui.icon(this, iconRes, 22, Theme.dim());
-        LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(Ui.dp(this, 22), Ui.dp(this, 22));
-        ilp.gravity = Gravity.CENTER_HORIZONTAL;
-        item.addView(icon, ilp);
-        TextView label = Ui.text(this, title, 10.5f, Theme.dim(), true);
+
+        FrameLayout capsule = new FrameLayout(this);
+        capsule.setBackground(Ui.bg(this, Color.TRANSPARENT, 13));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(
+                Ui.dp(this, 46), Ui.dp(this, 26));
+        clp.gravity = Gravity.CENTER_HORIZONTAL;
+        item.addView(capsule, clp);
+
+        ImageView icon = Ui.icon(this, iconRes, 21, Theme.faint());
+        FrameLayout.LayoutParams ilp = new FrameLayout.LayoutParams(
+                Ui.dp(this, 21), Ui.dp(this, 21));
+        ilp.gravity = Gravity.CENTER;
+        capsule.addView(icon, ilp);
+
+        TextView label = Ui.text(this, title, 10, Theme.faint(), true);
+        label.setLetterSpacing(0.02f);
         label.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        tlp.topMargin = Ui.dp(this, 4);
+        tlp.topMargin = Ui.dp(this, 3);
         tlp.gravity = Gravity.CENTER_HORIZONTAL;
         item.addView(label, tlp);
         item.setOnClickListener(v -> setTab(id));
-        Ui.ripple(item, 0x12FFFFFF);
+        Ui.ripple(item, Theme.light() ? 0x10101014 : 0x16FFFFFF);
         return item;
     }
 
     private LinearLayout buildMini() {
-        LinearLayout bar = Ui.row(this);
-        bar.setBackgroundColor(Theme.surface());
-        bar.setPadding(Ui.dp(this, 10), 0, Ui.dp(this, 8), 0);
-        View top = new View(this);
-        top.setBackgroundColor(Theme.border());
-        // mini uses a wrapper so the hairline can sit above the content
-        LinearLayout wrap = Ui.column(this);
-        wrap.addView(top, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
-        wrap.addView(bar, new LinearLayout.LayoutParams(
+        LinearLayout root = Ui.column(this);
+        root.setBackgroundColor(Theme.bg());
+        root.setPadding(Ui.dp(this, 10), 0, Ui.dp(this, 10), Ui.dp(this, 8));
+
+        FrameLayout card = new FrameLayout(this);
+        card.setBackground(Ui.gradient(this, Theme.surface2(), Theme.surface(), 16));
+        root.addView(card, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
+        LinearLayout bar = Ui.row(this);
+        bar.setPadding(Ui.dp(this, 8), 0, Ui.dp(this, 6), 0);
+        card.addView(bar, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
         ImageLoader.RoundedImageView cover = new ImageLoader.RoundedImageView(this);
-        cover.setRadiusDp(7);
-        cover.setBackground(Ui.bg(this, Theme.surface2(), 7));
-        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(Ui.dp(this, 44), Ui.dp(this, 44));
+        cover.setRadiusDp(10);
+        cover.setBackground(Ui.bg(this, Theme.surface3(), 10));
+        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(Ui.dp(this, 46), Ui.dp(this, 46));
         clp.rightMargin = Ui.dp(this, 12);
         cover.setOnClickListener(v -> openPlayer());
         bar.addView(cover, clp);
@@ -223,20 +237,23 @@ public class MainActivity extends Activity {
         miniArtist = Ui.text(this, "", 11.5f, Theme.dim(), false);
         miniArtist.setSingleLine(true);
         miniArtist.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        miniArtist.setPadding(0, Ui.dp(this, 2), 0, 0);
         copy.addView(miniTitle);
         copy.addView(miniArtist);
         bar.addView(copy);
 
         LinearLayout controls = Ui.row(this);
-        miniPlay = Ui.icon(this, R.drawable.ic_play, 22, Theme.text());
-        LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(Ui.dp(this, 42), Ui.dp(this, 42));
+        miniPlay = Ui.icon(this, R.drawable.ic_play, 20, Theme.text());
+        LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(Ui.dp(this, 38), Ui.dp(this, 38));
         plp.gravity = Gravity.CENTER_VERTICAL;
         View playBtn = wrapIcon(miniPlay, plp);
+        playBtn.setBackground(Ui.bg(this, Theme.surface3(), 19));
         playBtn.setOnClickListener(v -> Playback.get().toggle());
         LinearLayout nextBtn = Ui.row(this);
-        nextBtn.addView(Ui.icon(this, R.drawable.ic_next, 20, Theme.text()));
-        LinearLayout.LayoutParams nlp = new LinearLayout.LayoutParams(Ui.dp(this, 42), Ui.dp(this, 42));
+        nextBtn.addView(Ui.icon(this, R.drawable.ic_next, 19, Theme.text()));
+        LinearLayout.LayoutParams nlp = new LinearLayout.LayoutParams(Ui.dp(this, 40), Ui.dp(this, 40));
         nlp.gravity = Gravity.CENTER_VERTICAL;
+        nlp.leftMargin = Ui.dp(this, 2);
         nextBtn.setLayoutParams(nlp);
         nextBtn.setGravity(Gravity.CENTER);
         nextBtn.setOnClickListener(v -> Playback.get().next(true));
@@ -244,14 +261,11 @@ public class MainActivity extends Activity {
         controls.addView(nextBtn);
         bar.addView(controls);
 
-        LinearLayout root = Ui.column(this);
-        root.setBackgroundColor(Theme.surface());
-        LinearLayout.LayoutParams wrapLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
-        root.addView(wrap, wrapLp);
         miniProgress = new View(this);
         miniProgress.setBackgroundColor(Theme.accent());
-        root.addView(miniProgress, new LinearLayout.LayoutParams(0, Ui.dp(this, 2)));
+        FrameLayout.LayoutParams prlp = new FrameLayout.LayoutParams(0, Ui.dp(this, 2));
+        prlp.gravity = Gravity.BOTTOM;
+        card.addView(miniProgress, prlp);
         return root;
     }
 
@@ -282,10 +296,13 @@ public class MainActivity extends Activity {
             View item = navItems.getChildAt(i);
             LinearLayout layout = (LinearLayout) item;
             boolean active = i + 1 == tab;
-            ImageView icon = (ImageView) layout.getChildAt(0);
+            FrameLayout capsule = (FrameLayout) layout.getChildAt(0);
+            ImageView icon = (ImageView) capsule.getChildAt(0);
             TextView label = (TextView) layout.getChildAt(1);
-            icon.setColorFilter(active ? Theme.accent() : Theme.dim());
-            label.setTextColor(active ? Theme.accent() : Theme.dim());
+            capsule.setBackground(Ui.bg(this,
+                    active ? Theme.accentSoft(32) : Color.TRANSPARENT, 13));
+            icon.setColorFilter(active ? Theme.accent() : Theme.faint());
+            label.setTextColor(active ? Theme.text() : Theme.faint());
         }
     }
 
@@ -512,7 +529,8 @@ public class MainActivity extends Activity {
             return;
         }
         miniProgress.setVisibility(View.VISIBLE);
-        int width = mini.getWidth();
+        View holder = miniProgress.getParent() instanceof View ? (View) miniProgress.getParent() : mini;
+        int width = holder.getWidth();
         if (width <= 0) return;
         int progress = (int) (width * (p.position / (float) p.duration));
         ViewGroup.LayoutParams lp = miniProgress.getLayoutParams();

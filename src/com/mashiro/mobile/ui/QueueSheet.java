@@ -26,16 +26,20 @@ public final class QueueSheet {
     public static void show(MainActivity a) {
         final Playback p = Playback.get();
         LinearLayout content = Ui.column(a);
-        content.setPadding(Ui.dp(a, 16), 0, Ui.dp(a, 16), Ui.dp(a, 10));
+        content.setPadding(Ui.dp(a, 20), 0, Ui.dp(a, 20), Ui.dp(a, 12));
 
         LinearLayout header = Ui.row(a);
-        header.setPadding(0, 0, 0, Ui.dp(a, 8));
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(0, Ui.dp(a, 2), 0, Ui.dp(a, 12));
         LinearLayout copy = Ui.column(a);
         copy.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        copy.addView(Ui.title(a, "Очередь", 20));
+        copy.addView(Ui.overline(a, "Воспроизведение"));
+        TextView heading = Ui.title(a, "Очередь", 21);
+        heading.setPadding(0, Ui.dp(a, 5), 0, 0);
+        copy.addView(heading);
         TextView subtitle = Ui.text(a, "", 11.5f, Theme.dim(), false);
-        subtitle.setPadding(0, Ui.dp(a, 2), 0, 0);
+        subtitle.setPadding(0, Ui.dp(a, 4), 0, 0);
         copy.addView(subtitle);
         header.addView(copy);
         header.addView(Ui.iconButton(a, R.drawable.ic_close, 40, 18, Theme.dim(),
@@ -46,7 +50,7 @@ public final class QueueSheet {
         content.addView(header);
 
         LinearLayout controls = Ui.row(a);
-        controls.setPadding(0, 0, 0, Ui.dp(a, 6));
+        controls.setPadding(0, 0, 0, Ui.dp(a, 12));
         TextView shuffle = Ui.chip(a, "Перемешать", p.shuffle, null);
         TextView repeat = Ui.chip(a, repeatLabel(p.repeat), p.repeat != 0, null);
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
@@ -59,17 +63,18 @@ public final class QueueSheet {
 
         ScrollView scroll = new ScrollView(a);
         scroll.setClipToPadding(false);
-        LinearLayout list = Ui.column(a);
+        LinearLayout list = Widgets.group(a);
         scroll.addView(list, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         LinearLayout.LayoutParams scrollLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(a, 360));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(a, 380));
         content.addView(scroll, scrollLp);
 
         LinearLayout footer = Ui.row(a);
-        footer.setPadding(0, Ui.dp(a, 8), 0, 0);
+        footer.setGravity(Gravity.CENTER_VERTICAL);
+        footer.setPadding(0, Ui.dp(a, 12), 0, 0);
         TextView clear = Ui.text(a, "Очистить", 12.5f, Theme.danger(), true);
-        clear.setPadding(0, Ui.dp(a, 6), Ui.dp(a, 14), Ui.dp(a, 6));
+        clear.setPadding(0, Ui.dp(a, 6), Ui.dp(a, 16), Ui.dp(a, 6));
         footer.addView(clear);
         TextView sleep = Ui.text(a, "Таймер сна", 12.5f, Theme.dim(), true);
         sleep.setPadding(0, Ui.dp(a, 6), 0, Ui.dp(a, 6));
@@ -104,24 +109,26 @@ public final class QueueSheet {
             for (int i = 0; i < queue.size(); i++) {
                 Models.Track track = queue.get(i);
                 final int index = i;
+                if (i > 0) list.addView(Widgets.rowDivider(a));
                 LinearLayout row = Ui.row(a);
-                row.setPadding(Ui.dp(a, 4), Ui.dp(a, 6), Ui.dp(a, 2), Ui.dp(a, 6));
+                row.setPadding(Ui.dp(a, 12), Ui.dp(a, 9), Ui.dp(a, 6), Ui.dp(a, 9));
                 boolean active = i == p.index;
-                row.setBackground(Ui.bg(a, active ? Theme.surface2() : 0x00000000, 10));
-                row.addView(Widgets.cover(a, track.coverUrl, 42, 7));
+                row.setBackground(Ui.bg(a, active ? Theme.surface2() : 0x00000000, 12));
+                row.addView(Widgets.cover(a, track.coverUrl, 46, 10));
                 LinearLayout copyRow = Ui.column(a);
                 LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0,
                         ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-                clp.leftMargin = Ui.dp(a, 11);
+                clp.leftMargin = Ui.dp(a, 12);
                 copyRow.setLayoutParams(clp);
-                TextView title = Ui.text(a, track.title, 13.5f,
+                TextView title = Ui.text(a, track.title, 14,
                         active ? Theme.accent() : Theme.text(), true);
                 title.setSingleLine(true);
                 title.setEllipsize(android.text.TextUtils.TruncateAt.END);
                 copyRow.addView(title);
-                TextView artist = Ui.text(a, track.artistLine(), 11, Theme.dim(), false);
+                TextView artist = Ui.text(a, track.artistLine(), 11.5f, Theme.dim(), false);
                 artist.setSingleLine(true);
                 artist.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                artist.setPadding(0, Ui.dp(a, 2), 0, 0);
                 copyRow.addView(artist);
                 row.addView(copyRow);
                 row.addView(Ui.iconButton(a, R.drawable.ic_close, 34, 15, Theme.faint(),

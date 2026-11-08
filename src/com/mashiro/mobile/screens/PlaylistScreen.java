@@ -90,47 +90,45 @@ public class PlaylistScreen extends Screen {
 
         LinearLayout hero = Ui.column(a);
         hero.setGravity(Gravity.CENTER_HORIZONTAL);
-        hero.setPadding(0, Ui.dp(a, 4), 0, 0);
-        int size = Math.min(Ui.screenWidth(a) - Ui.dp(a, 150), Ui.dp(a, 160));
+        hero.setPadding(0, Ui.dp(a, 6), 0, 0);
+        int size = Math.min(Ui.screenWidth(a) - Ui.dp(a, 132), Ui.dp(a, 176));
         com.mashiro.mobile.ImageLoader.RoundedImageView cover =
-                Widgets.cover(a, playlist.coverUrl, 156, 16);
+                Widgets.cover(a, playlist.coverUrl, 172, 22);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(size, size);
         clp.gravity = Gravity.CENTER_HORIZONTAL;
         cover.setLayoutParams(clp);
+        cover.setElevation(Ui.dp(a, 12));
         hero.addView(cover);
 
-        TextView title = Ui.title(a, playlist.title, 23);
+        TextView eyebrow = Ui.overline(a, playlist.isPublic ? "Плейлист" : "Приватный плейлист");
+        eyebrow.setGravity(Gravity.CENTER);
+        eyebrow.setPadding(0, Ui.dp(a, 20), 0, 0);
+        hero.addView(eyebrow);
+
+        TextView title = Ui.title(a, playlist.title, 24);
         title.setGravity(Gravity.CENTER);
         title.setMaxLines(3);
-        title.setPadding(0, Ui.dp(a, 14), 0, 0);
+        title.setPadding(0, Ui.dp(a, 7), 0, 0);
         hero.addView(title);
 
         String ownerName = isOwn() ? Store.name() : "Плейлист сообщества";
         TextView sub = Ui.text(a, ownerName + " · " + playlist.trackCount + " "
-                + Ui.plural(playlist.trackCount, "трек", "трека", "треков"), 11.5f,
+                + Ui.plural(playlist.trackCount, "трек", "трека", "треков"), 12,
                 Theme.dim(), false);
         sub.setGravity(Gravity.CENTER);
-        sub.setPadding(0, Ui.dp(a, 5), 0, 0);
+        sub.setPadding(0, Ui.dp(a, 7), 0, 0);
         hero.addView(sub);
-
-        if (!playlist.isPublic) {
-            TextView pill = Ui.pill(a, "Приватный", Theme.faint());
-            LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            plp.topMargin = Ui.dp(a, 6);
-            hero.addView(pill, plp);
-        }
         content.addView(hero);
 
         if (!playlist.description.isEmpty()) {
             TextView description = Ui.text(a, playlist.description, 12.5f, Theme.dim(), false);
-            description.setLineSpacing(0, 1.25f);
-            description.setPadding(0, Ui.dp(a, 12), 0, 0);
+            description.setLineSpacing(0, 1.3f);
+            description.setPadding(0, Ui.dp(a, 14), 0, 0);
             content.addView(description);
         }
 
         LinearLayout actions = Ui.row(a);
-        actions.setPadding(0, Ui.dp(a, 14), 0, Ui.dp(a, 4));
+        actions.setPadding(0, Ui.dp(a, 18), 0, Ui.dp(a, 4));
         TextView play = Ui.primaryButton(a, "Слушать", v -> {
             if (!playlist.tracks.isEmpty()) a.playList(playlist.tracks, 0);
         });
@@ -141,17 +139,20 @@ public class PlaylistScreen extends Screen {
         });
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        slp.leftMargin = Ui.dp(a, 8);
+        slp.leftMargin = Ui.dp(a, 9);
         shuffle.setLayoutParams(slp);
         actions.addView(play);
         actions.addView(shuffle);
+        LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(
+                Ui.dp(a, 44), Ui.dp(a, 44));
+        mlp.leftMargin = Ui.dp(a, 4);
         actions.addView(Ui.iconButton(a, R.drawable.ic_more, 44, 20, Theme.text(),
-                v -> a.openPlaylistMenu(playlist, this::refresh)));
+                v -> a.openPlaylistMenu(playlist, this::refresh)), mlp);
         content.addView(actions);
 
         if (isOwn()) {
             TextView add = Ui.text(a, "+ Добавить треки из поиска", 12.5f, Theme.accent(), true);
-            add.setPadding(0, Ui.dp(a, 8), 0, Ui.dp(a, 4));
+            add.setPadding(0, Ui.dp(a, 12), 0, Ui.dp(a, 4));
             add.setOnClickListener(v -> Ui.toast(a,
                     "Откройте поиск и добавьте трек через меню «⋯»"));
             content.addView(add);
@@ -173,10 +174,9 @@ public class PlaylistScreen extends Screen {
             content.addView(Widgets.numberedRow(a, tracks, i, ownerKind));
         }
 
-        TextView footer = Ui.text(a, "Неофициальный клиент · данные Яндекс Музыки", 10,
-                Theme.faint(), false);
+        TextView footer = Ui.overline(a, "Неофициальный клиент · Яндекс Музыка");
         footer.setGravity(Gravity.CENTER);
-        footer.setPadding(0, Ui.dp(a, 22), 0, 0);
+        footer.setPadding(0, Ui.dp(a, 26), 0, 0);
         content.addView(footer);
     }
 }

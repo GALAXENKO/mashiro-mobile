@@ -14,40 +14,53 @@ public final class Theme {
         return Store.isLight();
     }
 
+    /** Main canvas. */
     public static int bg() {
-        return light() ? 0xFFF5F5F7 : 0xFF08080A;
+        return light() ? 0xFFF3F3F6 : 0xFF07070A;
     }
 
+    /** Cards, sheets and bars that sit on the canvas. */
     public static int surface() {
-        return light() ? 0xFFFFFFFF : 0xFF111114;
+        return light() ? 0xFFFFFFFF : 0xFF121216;
     }
 
+    /** Secondary fills: covers, icon circles, inputs. */
     public static int surface2() {
-        return light() ? 0xFFECECF0 : 0xFF19191E;
+        return light() ? 0xFFECECF1 : 0xFF1C1C22;
     }
 
+    /** Tertiary fills: tracks, pressed states, sliders. */
     public static int surface3() {
-        return light() ? 0xFFE2E2E8 : 0xFF232329;
+        return light() ? 0xFFDFDFE7 : 0xFF2A2A33;
     }
 
     public static int text() {
-        return light() ? 0xFF101014 : 0xFFF5F5F7;
+        return light() ? 0xFF0E0E12 : 0xFFF6F6F8;
     }
 
     public static int dim() {
-        return light() ? 0xFF6A6A73 : 0xFF9A9AA3;
+        return light() ? 0xFF63636D : 0xFF9E9EA9;
     }
 
     public static int faint() {
-        return light() ? 0xFF9C9CA5 : 0xFF6C6C75;
+        return light() ? 0xFF94949E : 0xFF6B6B77;
     }
 
     public static int border() {
-        return light() ? 0xFFE3E3E9 : 0xFF25252B;
+        return light() ? 0xFFE1E1E9 : 0xFF232329;
+    }
+
+    /** Softer hairline for dividers inside cards. */
+    public static int hairline() {
+        return light() ? 0x1A0E0E12 : 0x1AFFFFFF;
     }
 
     public static int danger() {
         return 0xFFFF6B6B;
+    }
+
+    public static int success() {
+        return 0xFF4CD787;
     }
 
     public static int accent() {
@@ -71,7 +84,7 @@ public final class Theme {
         return Color.argb(alpha, Color.red(a), Color.green(a), Color.blue(a));
     }
 
-    private static double luminance(int color) {
+    public static double luminance(int color) {
         double r = Color.red(color) / 255.0;
         double g = Color.green(color) / 255.0;
         double b = Color.blue(color) / 255.0;
@@ -81,7 +94,13 @@ public final class Theme {
     public static void apply(Activity activity) {
         Window window = activity.getWindow();
         window.setStatusBarColor(Color.TRANSPARENT);
-        window.setNavigationBarColor(light() ? 0xFFFFFFFF : 0xFF08080A);
+        window.setNavigationBarColor(bg());
+        if (Build.VERSION.SDK_INT >= 29) {
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            window.setNavigationBarDividerColor(Color.TRANSPARENT);
+            window.setNavigationBarContrastEnforced(false);
+        }
         View decor = window.getDecorView();
         int flags = decor.getSystemUiVisibility();
         if (Build.VERSION.SDK_INT >= 23) {

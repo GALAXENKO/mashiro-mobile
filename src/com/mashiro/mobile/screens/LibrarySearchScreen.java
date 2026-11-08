@@ -47,9 +47,13 @@ public class LibrarySearchScreen extends Screen {
         page.body.addView(Widgets.header(a, "Медиатека", "поиск по своей музыке", true, 0, null));
 
         LinearLayout bar = Ui.row(a);
-        bar.setBackground(Ui.bg(a, Theme.surface2(), 15));
-        bar.setPadding(Ui.dp(a, 14), Ui.dp(a, 2), Ui.dp(a, 6), Ui.dp(a, 2));
-        bar.addView(Ui.icon(a, R.drawable.ic_search, 19, Theme.dim()));
+        android.graphics.drawable.GradientDrawable barBg =
+                Ui.gradient(a, Theme.surface2(), Theme.surface(), 16);
+        barBg.setStroke(Math.max(1, Ui.dp(a, 1)), Theme.hairline());
+        bar.setBackground(barBg);
+        bar.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        bar.setPadding(Ui.dp(a, 14), Ui.dp(a, 1), Ui.dp(a, 6), Ui.dp(a, 1));
+        bar.addView(Ui.icon(a, R.drawable.ic_search, 19, Theme.faint()));
 
         input = new EditText(a);
         input.setHint("Трек, артист, плейлист");
@@ -59,12 +63,13 @@ public class LibrarySearchScreen extends Screen {
         input.setBackground(null);
         input.setSingleLine(true);
         input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-        input.setPadding(Ui.dp(a, 10), Ui.dp(a, 13), Ui.dp(a, 8), Ui.dp(a, 13));
+        input.setPadding(Ui.dp(a, 11), Ui.dp(a, 14), Ui.dp(a, 8), Ui.dp(a, 14));
         input.setLayoutParams(new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         bar.addView(input);
 
         clear = Ui.text(a, "✕", 15, Theme.faint(), false);
+        clear.setGravity(android.view.Gravity.CENTER);
         clear.setPadding(Ui.dp(a, 10), Ui.dp(a, 8), Ui.dp(a, 12), Ui.dp(a, 8));
         clear.setVisibility(View.GONE);
         clear.setOnClickListener(v -> {
@@ -164,10 +169,10 @@ public class LibrarySearchScreen extends Screen {
                 content.addView(Widgets.sectionHeader(a, "Мои плейлисты", null, null));
                 LinearLayout row = Widgets.horizontal(a);
                 for (Models.Playlist p : playlists) {
-                    View card = Widgets.playlistCard(a, p, 132);
+                    View card = Widgets.playlistCard(a, p, 136);
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                            Ui.dp(a, 132), ViewGroup.LayoutParams.WRAP_CONTENT);
-                    lp.rightMargin = Ui.dp(a, 10);
+                            Ui.dp(a, 136), ViewGroup.LayoutParams.WRAP_CONTENT);
+                    lp.rightMargin = Ui.dp(a, 14);
                     row.addView(card, lp);
                 }
                 content.addView(Widgets.horizontalScroll(a, row));

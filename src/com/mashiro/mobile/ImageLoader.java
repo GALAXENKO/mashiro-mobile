@@ -106,7 +106,7 @@ public final class ImageLoader {
             c = (HttpURLConnection) new URL(url).openConnection();
             c.setConnectTimeout(12000);
             c.setReadTimeout(20000);
-            c.setRequestProperty("User-Agent", "Mashiro/1.0 (Android)");
+            c.setRequestProperty("User-Agent", "Mashiro/1.2 (Android)");
             c.setRequestProperty("Accept", "image/*");
             int code = c.getResponseCode();
             if (code < 200 || code >= 300) return null;

@@ -73,7 +73,7 @@ public final class Downloader {
                 connection.setConnectTimeout(15000);
                 connection.setReadTimeout(30000);
                 connection.setRequestProperty("X-Yandex-Music-Client", YandexApi.MUSIC_CLIENT);
-                connection.setRequestProperty("User-Agent", "Mashiro/1.1 (Android)");
+                connection.setRequestProperty("User-Agent", "Mashiro/1.2 (Android)");
                 int code = connection.getResponseCode();
                 if (code < 200 || code >= 300) throw new Exception("CDN ответил " + code);
                 long total = connection.getContentLengthLong();
